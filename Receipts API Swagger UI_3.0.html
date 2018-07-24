@@ -1,0 +1,60 @@
+﻿<!DOCTYPE HTML>
+<!-- HTML for static distribution bundle build --><!DOCTYPE html PUBLIC "" ""><HTML 
+lang="en"><HEAD><META content="IE=11.0000" http-equiv="X-UA-Compatible">
+     
+<META charset="UTF-8">     <TITLE>Receipts API Swagger UI</TITLE>     <LINK 
+href="Receipts%20API%20Swagger%20UI_3.0_files/swagger-ui.css" rel="stylesheet" 
+type="text/css">     <LINK href="./favicon-32x32.png" rel="icon" type="image/png" 
+sizes="32x32">     <LINK href="./favicon-16x16.png" rel="icon" type="image/png" 
+sizes="16x16">     
+<STYLE>
+      html
+      {
+        box-sizing: border-box;
+        overflow: -moz-scrollbars-vertical;
+        overflow-y: scroll;
+      }
+
+      *,
+      *:before,
+      *:after
+      {
+        box-sizing: inherit;
+      }
+
+      body
+      {
+        margin:0;
+        background: #fafafa;
+      }
+    </STYLE>
+   
+<META name="GENERATOR" content="MSHTML 11.00.9600.19036"></HEAD>   
+<BODY>
+<DIV id="swagger-ui"></DIV>
+<SCRIPT src="Receipts%20API%20Swagger%20UI_3.0_files/swagger-ui-bundle.js"></SCRIPT>
+     
+<SCRIPT src="Receipts%20API%20Swagger%20UI_3.0_files/swagger-ui-standalone-preset.js"></SCRIPT>
+     
+<SCRIPT>
+    window.onload = function() {
+
+      // Build a system
+      const ui = SwaggerUIBundle({
+        url: "http://10.103.186.59:8080/Downloads/swagger-ui-master/ui-dist/Cox55_receipts-api_2.2.0-oas3_swagger.json",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout"
+      })
+
+      window.ui = ui
+    }
+  </SCRIPT>
+   </BODY></HTML>
