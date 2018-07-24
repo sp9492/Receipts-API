@@ -1,0 +1,598 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "2.2.0",
+    "title": "RECEIPTS API",
+    "description": "This document addresses the requirements of  to provide an application programming interface (API) that returns customer, consignment and invoice information from the  Wholesale Billing and Payments system that is built on Oracle’s E-Business Suite.\nTwo functionally distinct APIs will be created to be called by ’s Customer Portal, Customer Service Application, and Remarketing Management Services applications\n- Receipts API: This API will cater the need of displaying and creating payments received from buyer, in Oracle EBS.\n- Payments API: This API will cater the need of displaying and creating payments made to the seller, in Oracle EBS.\nThis document specifically addresses the design aspects of Receipts API. Payments API will be addressed in a separate design document.\n# Definitions\n- Oracle E-Business Suite (EBS) - Oracle's E-Business Suite consists of a collection of enterprise resource planning applications.  The Wholesale Billing and Payments system leverages the EBS Trading Community, Order Management and Receivables applications to deliver a billing and payment system for the  wholesale businesses.\n- Oracle Service Bus (OSB) - Oracle Service Bus is configuration-based, policy-driven service bus designed for SOA life cycle management.  It provides message brokering with routing and transformation of messages, along with service monitoring and administration.\n- JavaScript Object Notation (JSON) - is an open-standard format that uses human-readable text to transmit data Objects consisting of attribute–value pairs. It is the most common data format used for asynchronous browser/server communication.\n- Consignment – A custom data Object that was created for the Wholesale Billing and Payments system that contains information about vehicle sales.All buyer and seller invoices are linked to a consignment.\n-  Customer Portal and Customer Service App (CP/CSA) – Web applications that are used by customers and employees to view invoices and make payments.\n- Remarketing Management System. A division of  that provides remarketing services for commercial consignors.  RMS provides white label branded websites in which consignors can market and sell “upstream” off-lease and company owned vehicles.\n  "
+  },
+  "schemes": [
+    "https"
+  ],
+  "host": "zzz.com",
+  "securityDefinitions": {
+    "basicAuth": {
+      "type": "basic"
+    }
+  },
+  "paths": {
+    "/receipts2/": {
+      "get": {
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "summary": "Get Customer Reciepts",
+        "tags": [
+          "Endpoints"
+        ],
+        "description": "| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.com/receipts2    (**Current enviorment being used for Try it out**)\n| SILO5   | Receipts | https://zzz.com/receipts2\n| PREPROD | Receipts | https:// zzz.com/receipts2\n| PROD    | Receipts | https://\n# External  Enpoints Table\n|\n| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.com/receipts2 \n| SILO5   | Receipts | https://zzz.com/receipts2\n| PREPROD | Receipts | https://zzz.com/receipts2\n| PROD    | Receipts | https://\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "customerNumber",
+            "required": true,
+            "type": "string",
+            "description": "Specifies the customer whose invoices should be returned.  Valid values: Auction Access 5 million  4.9 million (Commercial)\n 7 million (Retail/Employee)  12 million (Floorplan\nAgency)  13 Million (Consignor Netting) Mega Dealer RMS Customer Number."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This table describes the JSON for a successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "truncation": {
+                  "$ref": "#/definitions/truncation"
+                },
+                "itemNumber": {
+                  "type": "number"
+                },
+                "receipts": {
+                  "$ref": "#/definitions/receipts"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "- Application did not provide requiredhttpS header fields.\n- RepNumber required in httpS header for user role provided\n- Invalid Expansion\n- Invalid date value\n- Invalid boolean value ‘xxx’\n- customerNumber not found\n- receiptID not found\n- No receipts  were found for the passed input filters"
+          },
+          "401": {
+            "description": "- Authorization Required (invalid application user name or password).\n- Application does not have authorization to access the requested outputExpansions."
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "summary": "Post Reciept Request",
+        "tags": [
+          "Endpoints"
+        ],
+        "description": "| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.com/receipts2    (**Current enviorment being used for Try it out**)\n| SILO5   | Receipts | https://zzz.com/receipts2\n| PREPROD | Receipts | https://zzz.com/receipts2\n| PROD    | Receipts | https://\n# External  Enpoints Table\n|\n| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.com/receipts2 \n| SILO5   | Receipts | https://zzz.com/receipts2\n| PREPROD | Receipts | https://zzz.com/receipts2\n| PROD    | Receipts | https://\n",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "customerNumber": {
+                  "type": "string"
+                },
+                "auctionCode": {
+                  "type": "string"
+                },
+                "remoteAuctionCode": {
+                  "type": "string"
+                },
+                "checkNumber": {
+                  "type": "string"
+                },
+                "holdPayment": {
+                  "type": "boolean"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "receiptAmount": {
+                  "type": "number"
+                },
+                "onaccountAmount": {
+                  "type": "number"
+                },
+                "floatContract": {
+                  "type": "boolean"
+                },
+                "noOfHundreds": {
+                  "type": "string"
+                },
+                "suspicious": {
+                  "type": "boolean"
+                },
+                "suspiciousReason": {
+                  "type": "string"
+                },
+                "suspiciousDescription": {
+                  "type": "string"
+                },
+                "Id": {
+                  "type": "string"
+                },
+                "payer": {
+                  "type": "object",
+                  "properties": {
+                    "payerId": {
+                      "type": "string"
+                    },
+                    "repNumber": {
+                      "type": "string"
+                    },
+                    "suffix": {
+                      "type": "string"
+                    },
+                    "firstName": {
+                      "type": "string"
+                    },
+                    "middleName": {
+                      "type": "string"
+                    },
+                    "lastName": {
+                      "type": "string"
+                    },
+                    "tin": {
+                      "type": "string"
+                    },
+                    "dateOfBirth": {
+                      "format": "date",
+                      "type": "string"
+                    },
+                    "streetAddress": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "zip": {
+                      "type": "string"
+                    },
+                    "country": {
+                      "type": "string"
+                    },
+                    "Occupation": {
+                      "type": "string"
+                    },
+                    "idNumber": {
+                      "type": "string"
+                    },
+                    "idType": {
+                      "type": "string"
+                    },
+                    "idExpiration": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "idIssuedCountry": {
+                      "type": "string"
+                    },
+                    "idIssuedState": {
+                      "type": "string"
+                    },
+                    "idDescription": {
+                      "type": "string"
+                    },
+                    "w9Received": {
+                      "type": "boolean"
+                    },
+                    "notApplicable": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "invoiceDetails": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "invoiceID": {
+                        "type": "number"
+                      },
+                      "invoiceSource": {
+                        "type": "string"
+                      },
+                      "applicationAmount": {
+                        "type": "number"
+                      },
+                      "cashHandlingFee": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "receiptStatus": {
+                  "type": "string"
+                },
+                "pendingReceiptType": {
+                  "type": "string"
+                },
+                "recieptID": {
+                  "type": "number"
+                },
+                "receiptNumber": {
+                  "type": "string"
+                },
+                "serialNumber": {
+                  "type": "string"
+                },
+                "success": {
+                  "type": "boolean"
+                },
+                "errorMessage": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "- Application did not provide requiredhttpS header fields.\n- Application (CSA/RMS) user is not authorized to create ‘xxx’ receipt type\n- RepNumber required inhttpS header for user role provided\n- Invalid date value\n- string value 'xxx' is not a valid value for paymentMethod:id\n- string value 'xxx' is not a valid enumeration value for currency\n- Invalid boolean value ‘xxx’ hold payment\n- string value 'xxx' is not a valid enumeration value for invoice source\n- Check number value is not passed for ‘xxx’ payment type\n- Suspicious flag value is not passed for ‘xxx’ payment type\n- Suspicious reason value is not passed when receipt was flagged as suspicious\n- Number of hundreds value ‘nnn’ is not valid\n- Passed total receipt amount does not match with the sum of application, cash handling fee, and on-account amounts.\n- Cash handling fee line/adjustment already exists for transaction(s) nnnn (, nnnn…)\n- Passed application amount for transaction(s) nnnn (, nnnn…) is more than the transaction open amount \n- Passed Sales Order <salesorderid> is in ENTERED or CANCELLED status\n- Invalid combination of primary and remote locations was passed \n- Passed location <locationcode> is inactive or end dated in Oracle\n- Depository bank account is not defined for the passed remote location\n- customerNumber not found (4004 ERROR CODE)\n- Bank account is either inactive or invalid for the passed bank account id (4004 ERROR CODE)"
+          },
+          "401": {
+            "description": "Authorization Required (invalid application user name"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "receipts": {
+      "type": "array",
+      "description": "|values|EBS Data Mapping (Table.Column)|Length|\n|------|-------------------------------|------|\n|This array contains receipt header level information|\n",
+      "items": {
+        "properties": {
+          "customerNumber": {
+            "type": "string",
+            "description": "description\n- values\n  *  Customer Number\n- EBS Data Mapping (Table.Column)\n  * Hz_cust_accounts.account_number for\n- Length\n  * 60"
+          },
+          "receiptDate": {
+            "type": "string",
+            "description": "description\n- values\n  *  Date receipt was created in Oracle in UTC - YYYY-MM-DDTHH:MM:S-UTC\n- EBS Data Mapping (Table.Column)\n  For payment types other than ACH pending and floorplan use - ar_cash_receipts_all.receipt_date\n  For ACH pending payments, derive receipt date as follows:\n  -  Get payment date from the custom audit table\n  -  Get creation date of the transaction, data is not found in audit table  \n  For floorplan payment type derive creation date as follows:\n  -  Get payment date from the custom audit table\n  -  Get payment date from the floorplan workflow table, if data is not found in the audit table\n\n- Length\n  * 30"
+          },
+          "receiptDateString": {
+            "type": "string",
+            "description": "description\n- values\n  *  Payment date in MM/DD/YYYY format\n- EBS Data Mapping (Table.Column)\n  * Use the above logic to derive date\n\n- Length\n  * 30"
+          },
+          "receiptID": {
+            "type": "string",
+            "description": "description\n- values\n  *  Oracle EBS payment identifier of a receipt\n- EBS Data Mapping (Table.Column)\n  * Pending Floorplan & Pending ACH:\n  Invoice: ra_customer_trx_all.customer_trx_id\n  Sales Order: oe_order_headers_all.header_id\n  Receipt: ar_cash_receipts_all.cash_receipt_id\n\n\n- Length\n  * 25"
+          },
+          "receiptBatchName": {
+            "type": "string",
+            "description": "description\n- values\n  *  This is Oracle EBS receipt batch name, \n  applicable for the following type of receipts:\n      -  Cash\n      -  Money Order\n      -  Cashier’s Check\n      -  Check\n\n- EBS Data Mapping (Table.Column)\n  * AR_BATCHES_V.name\n\n\n- Length\n  * 20"
+          },
+          "receiptNumber": {
+            "type": "string",
+            "description": "description\n- values\n  *  This is Oracle EBS receipt number\n\n- EBS Data Mapping (Table.Column)\n  * Pending Floorplan & Pending ACH:\n    Invoice: ra_customer_trx_all.trx_number\n    Sales Order: oe_order_headers_all.order_number\n    \n    Receipt:ar_cash_receipts_all.receipt_number \n- Length\n  * 30"
+          },
+          "receiptDescription": {
+            "type": "string",
+            "description": "description\n- values\n  *  Populated with floor plan agency name for \n  floorplan payment, bank name||account# for ACH, customer name||account# for Consignor netting\n\n- EBS Data Mapping (Table.Column)\n  * Multiple places\n- Length\n  * 240"
+          },
+          "pendingDescription": {
+            "type": "string",
+            "description": "description\n- values\n  *  Hold reason name, e.g. Title Absent\n\n- EBS Data Mapping (Table.Column)\n  * From man_ar_support_pkg.get_payment_hold_reason \n- Length\n  * 60"
+          },
+          "receiptAmount": {
+            "type": "number",
+            "description": "description\n- values\n  *  This is the Oracle EBS total receipt amount\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts.amount\n- Length\n  * Not Specified"
+          },
+          "overPaymentAmount": {
+            "type": "number",
+            "description": "description\n- values\n  *  Remaining On-Account and un-applied amount on \n  the receipt\n\n- EBS Data Mapping (Table.Column)\n  * ar_receivable_applications_all.SUM(b.AMOUNT_APPLIED) \n  for STATUS in('ACC', 'UNAPP')\n- Length\n  * Not Specified"
+          },
+          "receiptSource": {
+            "type": "string",
+            "description": "description\n- values\n  * This is payment source- RECEIPT, PENDING, NETTING, based on payment status\n    PENDING: Held Check, Ach Pending, \n    Initiated/On-Hold Floorplan \n    RECEIPT: Cash, Check, Ach Immediate, Money Order, Cashier’s Check, Consignor Netting, Credit Card, eCheck, Wire Transfer, Incoming ACH, RMS I/C\n\n\n- EBS Data Mapping (Table.Column)\n  * From \n  man_ar_support_pkg.get_payment_hold_reason api\n- Length\n  * 60"
+          },
+          "currency": {
+            "type": "string",
+            "description": "description\n- values\n  *  Currency code. Valid values are USD and CAD\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_all.currency_code\n\n- Length\n  * 15"
+          },
+          "receiptMethodType": {
+            "type": "string",
+            "description": "description\n- values\n  *  Payment method type. \n     Payment method type. \n      Please refer the mapping table below for mapping between Payment Method type, status, state, and pending receipt type.\n\n\n\n\n- EBS Data Mapping (Table.Column)\n  * Ar_receipt_methods.attribute2\n- Length\n  * 30"
+          },
+          "receiptStatus": {
+            "type": "string",
+            "description": "description\n- values\n  * Please refer the mapping table below for mapping between Payment Method type, status, state, and pending receipt type.\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_v.state \n\n- Length\n  * 30"
+          },
+          "receiptState": {
+            "type": "string",
+            "description": "description\n- values\n  *  Please refer the mapping table below for mapping between Payment Method type, status, state, and pending receipt type.\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_v.receipt_status_dsp \n\n- Length\n  * 30"
+          },
+          "pendingReceiptType": {
+            "type": "string",
+            "description": "description\n- values\n  *  Will return value only for pending transactions, e.g. held check, pending ACH, pending/on-hold floorplan.\n\n- EBS Data Mapping (Table.Column)\n  * From man_ar_support_pkg.get_payment_hold_reason \n\n- Length\n  * 60"
+          },
+          "reversalReason": {
+            "type": "string",
+            "description": "description\n- values\n  * This is the reason for the reversed receipt.\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_all.reversal_reason_code if the receipt status = ‘REV’ \n  api\n- Length\n  * 60"
+          },
+          "receiptMethodTypeDetails": {
+            "type": "string",
+            "description": "description\n- values\n  *  Populated for floorplan and ACH buyer payments\n\n- EBS Data Mapping (Table.Column)\n  * Floorplan: ra_customer_trx_all.party_name\n    ACH: concatenation of bank name||account number\n- Length\n  * 60"
+          },
+          "numberOfHundredDollars": {
+            "type": "number",
+            "maxLength": 0,
+            "description": "description\n- values\n  *  Applicable only for cash receipts\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.noofhundreddollars\n  api\n- Length\n  * Not Specified"
+          },
+          "employeeUsername": {
+            "type": "string",
+            "description": "description\n- values\n  *  Employee username, applicable only for cash or cash equivalent receipts\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.employeeusername\n- Length\n  * 240"
+          },
+          "receiptDetails": {
+            "$ref": "#/definitions/receiptDetails"
+          },
+          "applications": {
+            "$ref": "#/definitions/applications"
+          }
+        }
+      }
+    },
+    "receiptDetails": {
+      "type": "object",
+      "description": "This object contains customer, auction location, payer, and receipt application information.",
+      "properties": {
+        "customer": {
+          "$ref": "#/definitions/customer"
+        },
+        "auction": {
+          "$ref": "#/definitions/auction"
+        },
+        "payer": {
+          "$ref": "#/definitions/payer"
+        }
+      }
+    },
+    "customer": {
+      "type": "object",
+      "properties": {
+        "customerName": {
+          "type": "string",
+          "description": "description\n- values\n  *  Customer Name\n\n- EBS Data Mapping (Table.Column)\n  * hz_cust_accounts.account_name\n- Length\n  * 360"
+        },
+        "address1": {
+          "type": "string",
+          "description": "description\n- values\n  *  Buyer address line 1\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.address1\n- Length\n  * 30"
+        },
+        "address2": {
+          "type": "string",
+          "description": "description\n- values\n  *  Buyer address line 2\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.address2\n- Length\n  * 30"
+        },
+        "city": {
+          "type": "string",
+          "description": "description\n- values\n  *  Buyer address city name\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.city\n- Length\n  * 30"
+        },
+        "state": {
+          "type": "string",
+          "description": "description\n- values\n  *  Buyer address state name\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.state\n- Length\n  * 30"
+        },
+        "postal": {
+          "type": "string",
+          "description": "description\n- values\n  *  Buyer address postal code\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.postal_code\n- Length\n  * 30"
+        },
+        "country": {
+          "type": "string",
+          "description": "description\n- values\n  *  Buyer address country code\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.country\n- Length\n  * 30"
+        }
+      }
+    },
+    "auction": {
+      "type": "object",
+      "description": "This object contains auction location details. Applicable for CASH, CASHIERS CHECK, and MONEY ORDER payment types",
+      "properties": {
+        "auctionLocation": {
+          "type": "string",
+          "description": "description\n- values\n  *  This is primary auction facilitating location name\n\n- EBS Data Mapping (Table.Column)\n  * JTF_RS_DEFRESOURCES_V.resource_name\n- Length\n  * 240"
+        },
+        "auctionCode": {
+          "type": "string",
+          "description": "description\n- values\n  *  This is primary auction facilitating location code\n\n- EBS Data Mapping (Table.Column)\n  * JTF_RS_DEFRESOURCES_V.attribute1\n- Length\n  * 25"
+        },
+        "remoteAuctionCode": {
+          "type": "string",
+          "description": "description\n- values\n  *  This is remote auction location code and will be retuned only when remote location code was provided by the calling application for cash, check, cashier’s check, and money order payments.\n\n- EBS Data Mapping (Table.Column)\n  * JTF_RS_DEFRESOURCES_V.attribute1 or ar_cash_receipts_all DFF attribute\n- Length\n  * 25"
+        },
+        "address1": {
+          "type": "string",
+          "description": "description\n- values\n  *  Primary Auction Location address line 1\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+        },
+        "address2": {
+          "type": "string",
+          "description": "description\n- values\n  *  Primary Auction Location address line 2\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+        },
+        "city": {
+          "type": "string",
+          "description": "description\n- values\n  *  Primary Auction Location city name\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+        },
+        "state": {
+          "type": "string",
+          "description": "description\n- values\n  * Primary Auction Location state name\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+        },
+        "postal": {
+          "type": "string",
+          "description": "description\n- values\n  *  Primary Auction Location postal code\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+        },
+        "country": {
+          "type": "string",
+          "description": "description\n- values\n  *  Primary Auction Location country code\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+        }
+      }
+    },
+    "payer": {
+      "type": "object",
+      "description": "This object contains payer details for Cash payments Or for Cash equivalent payments when customer is a retail customer.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer first name & last name\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.firstname|| ' ' ||lastname\n- Length\n  * 300"
+        },
+        "repNumber": {
+          "type": "string",
+          "description": "description\n- values\n  * Payer rep number\n\n- EBS Data Mapping (Table.Column)\n  * hz_parties.attribute20\n- Length\n  * 25"
+        },
+        "idType": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer id description\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legaliddescription\n- Length\n  * 150"
+        },
+        "idDescription": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer id description\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legaliddescription\n  * 150"
+        },
+        "idNumber": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer identification number\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationnumber\n- Length\n  * 150"
+        },
+        "issuedByCountry": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer identification issuing country\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationcountry\n- Length\n  * 150"
+        },
+        "issuedByState": {
+          "type": "string",
+          "description": "description\n- values\n  * Payer id issuing state\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationst_province\n- Length\n  * 360"
+        },
+        "idExpiration": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer id expiration date\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationexpdate\n- Length\n  * 15"
+        },
+        "address1": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer address line 1\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.address\n- Length\n  * 240"
+        },
+        "city": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer address city name\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.city\n- Length\n  * 60"
+        },
+        "state": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer address state name\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details. state\n- Length\n  * 60"
+        },
+        "postal": {
+          "type": "string",
+          "description": "description\n- values\n  * Payer address postal code\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.zip\n- Length\n  * 60"
+        },
+        "country": {
+          "type": "string",
+          "description": "description\n- values\n  *  Payer address country code\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.country\n- Length\n  * 60"
+        }
+      }
+    },
+    "applications": {
+      "type": "array",
+      "description": "This array of objects contains application information for receipt that is created. This array will contain all type of applications, including invoice, credit memo, writeoff, refund, or on-account.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "consignmentID": {
+            "type": "number",
+            "description": "description\n- values\n  *  Consignment identifier\n\n- EBS Data Mapping (Table.Column)\n  * ra_customer_trx_all.attribute2\n- Length\n  * Not Specified"
+          },
+          "year": {
+            "type": "string",
+            "description": "description\n- values\n  * Vehicle make year\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.year\n- Length\n  * 240"
+          },
+          "make": {
+            "type": "string",
+            "description": "description\n- values\n  *  Vehicle make \n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.make\n- Length\n  * 240"
+          },
+          "model": {
+            "type": "string",
+            "description": "description\n- values\n  *  Vehicle model\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.model\n- Length\n  * 240"
+          },
+          "trim": {
+            "type": "string",
+            "description": "description\n- values\n  *  Vehicle trim style\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.subseries_trim_code\n- Length\n  * 240"
+          },
+          "vin": {
+            "type": "string",
+            "description": "description\n- values\n  *  Vehicle Identification Number\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.vin\n- Length\n  * 240"
+          },
+          "invoiceID": {
+            "type": "number",
+            "description": "description\n- values\n  *  Invoice application: Invoice id of the applied invoice. It can also be credit memo id for consignor netting.\n    Sales Order application: sales order id of the applied sales order. \n\n\n- EBS Data Mapping (Table.Column)\n  * Ra_customer_trx_all.customer_trx_id,\n    Oe_order_headers_all.header_id\n\n- Length\n  * Not Specified"
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "description": "description\n- values\n  *  Invoice application: Invoice number of the applied invoice. It can also be credit memo number for consignor netting.\n    Sales Order application: sales order number of the applied sales order. \n\n- EBS Data Mapping (Table.Column)\n  * ra_customer_trx_all.trx_number,\n    oe_order_headers_all.order_number,\n    ar_receivables_trx_all.name\n\n- Length\n  * 50"
+          },
+          "invoiceSource": {
+            "type": "string",
+            "description": "description\n- values\n  * Values returned will be:\n    -  ‘INVOICE’: if the receipt is applied to an invoice or any application other than ORDER\n    -  ‘ORDER’: if the receipt is applied to a  sales order (on-account with SO in DFF)\n     \n\n\n- EBS Data Mapping (Table.Column)\n  * Ra_customer_trx_all.customer_trx_id,\n    Oe_order_headers_all.header_id\n\n- Length\n  * 30"
+          },
+          "invoiceType": {
+            "type": "string",
+            "description": "description\n- values\n  *  This data attribute will be populated only for invoice source of INVOICE and ORDER (application type = ‘APPLIED’). For others it will be blank.\n    Invoice type from:\n      -  sales order transaction type for receipt applied to sales order\n      -  invoice transaction type for receipt applied to sales order\n\n\n- EBS Data Mapping (Table.Column)\n  * oe_transaction_types_all.attribute10\n\n    ra_cust_trx_types_all.attribute10 \n\n- Length\n  * 30"
+          },
+          "appliedInvoiceNumber": {
+            "type": "string",
+            "description": "description\n- values\n  *  Return invoice/credit memo number or sales order number based on the invoiceSource value.\n\n- EBS Data Mapping (Table.Column)\n  * ra_customer_trx_all.trx_number,\n    oe_order_headers_all.order_number\n\n- Length\n  * Not Specified"
+          },
+          "appliedAmount": {
+            "type": "number",
+            "description": "description\n- values\n  *  This amount needs to be calculated based on the type of payment. This is the receipt amount applied to this invoice / credit memo/ sales order /refund/writeoff activity\n\n- EBS Data Mapping (Table.Column)\n  * ar_receivable_applications_all.amount_applied\n- Length\n  * Not Specified"
+          },
+          "remainingBalance": {
+            "type": "number",
+            "description": "description\n- values\n  *  This amount needs to be calculated based on the type of payment. This is the remaining balance on the applied invoice / sales order.\n\n- EBS Data Mapping (Table.Column)\n  * ar_payment_schedules_all.amount_due_remaining – For invoice\n- Length \n  * Not Specified"
+          },
+          "partialPayment": {
+            "type": "boolean",
+            "description": "description\n- values\n  *  If invoice or sales order balance is not zero then populate true else false\n\n- EBS Data Mapping (Table.Column)\n  * \n- Length\n  * Not Specified"
+          },
+          "applicationType": {
+            "type": "string",
+            "description": "description\n- values\n  *  Identifies the type of application\n\n\n- EBS Data Mapping (Table.Column)\n  * Derived\n- Length\n  * 30"
+          },
+          "applicationDate": {
+            "type": "string",
+            "description": "description\n- values\n  *  Application date in UTC - YYYY-MM-DDTHH:MM:S-UTC\n\n- EBS Data Mapping (Table.Column)\n  * ar_receivable_applications_all.apply_date\n- Length\n  * 30"
+          },
+          "activity": {
+            "type": "string",
+            "description": "description\n- values\n  *  This is the activity name defined in Oracle for application type of writeoff and refund. \n\nThis data attribute will be populated only for Writeoff and Refund application types. It will be blank for other application types.\nPlease see Application type / invoice type / activity table in section 4.2.3 for the possible values and their meaning\n\n\n            - EBS Data Mapping (Table.Column)\n              * ra_customer_trx_all.attribute2\n- Length\n    * Not Specified                      "
+          }
+        }
+      }
+    },
+    "truncation": {
+      "type": "object",
+      "properties": {
+        "truncated": {
+          "type": "boolean",
+          "description": "|values|EBS Data Mapping (Table.Column)|Length|\n|-----|--------------------------------|------|\n|true:  The number of receipts returned was truncated to manage system performance|Get receipts API limits the number of receipt objects that are returned in the JSON response to prevent large responses from impacting system performance.  The number of receipts returned is a configurable parameter in Oracle.  Both receipts and payments api will use the same Oracle EBS profile option to control the truncation. If the number of receipts is limited the JSON includes the number of transactions returned.  |Not Specified\n"
+        },
+        "itemCount": {
+          "type": "number",
+          "description": "|values|EBS Data Mapping (Table.Column)|Length|\n|------|--------------------------------|------|\n|Number of transactions returned|Value of Profile Option, MAN AR API Receipts API Threshold|Not Specified\n"
+        }
+      }
+    }
+  }
+}
