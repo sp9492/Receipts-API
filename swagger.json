@@ -1,46 +1,214 @@
 {
   "openapi" : "3.0.0",
   "servers" : [ {
-    "url" : "https://zzz.targethost1.com/"
+    "url" : "https://tmnh7o.manheim.com",
+    "description" : "SILO4 Internal End Point"
   }, {
-    "url" : "https://zzz.targethost2.com/"
+    "url" : "https://tmnh7opub.oracleoutsourcing.com",
+    "description" : "SILO4 External End Point"
+  }, {
+    "url" : "https://smnh5opub.oracleoutsourcing.com",
+    "description" : "SILO5 External End Point"
+  }, {
+    "url" : "https://smnh2opub.oracleoutsourcing.com",
+    "description" : "Pre-Prod External End Point"
+  }, {
+    "url" : "https://ebizservicespub.oracleoutsourcing.com",
+    "description" : "Production External End Point"
+  }, {
+    "url" : "https://smnh5o.manheim.com",
+    "description" : "SILO5 Internal End Point"
+  }, {
+    "url" : "https://smnh2o.manheim.com",
+    "description" : "Pre-Prod Internal End Point"
+  }, {
+    "url" : "https://ebizservices.manheim.com",
+    "description" : "Production Internal End Points"
   } ],
   "info" : {
-    "version" : "2.2.0-oas3",
-    "title" : "RECEIPTS API",
-    "description" : "This document addresses the requirements of  to provide an application programming interface (API) that returns customer, consignment and invoice information from the  Wholesale Billing and Payments system that is built on Oracle’s E-Business Suite.\nTwo functionally distinct APIs will be created to be called by ’s Customer Portal, Customer Service Application, and Remarketing Management Services applications\n- Receipts API: This API will cater the need of displaying and creating payments received from buyer, in Oracle EBS.\n- Payments API: This API will cater the need of displaying and creating payments made to the seller, in Oracle EBS.\nThis document specifically addresses the design aspects of Receipts API. Payments API will be addressed in a separate design document.\n# Definitions\n- Oracle E-Business Suite (EBS) - Oracle's E-Business Suite consists of a collection of enterprise resource planning applications.  The Wholesale Billing and Payments system leverages the EBS Trading Community, Order Management and Receivables applications to deliver a billing and payment system for the  wholesale businesses.\n- Oracle Service Bus (OSB) - Oracle Service Bus is a configuration-based, policy-driven service bus designed for SOA life cycle management.  It provides message brokering with routing and transformation of messages, along with service monitoring and administration.\n- JavaScript Object Notation (JSON) - is an open-standard format that uses human-readable text to transmit data Objects consisting of attribute–value pairs. It is the most common data format used for asynchronous browser/server communication.\n- Consignment – A custom data Object that was created for the Wholesale Billing and Payments system that contains information about vehicle sales.All buyer and seller invoices are linked to a consignment.\n-  Customer Portal and Customer Service App (CP/CSA) – Web applications that are used by customers and employees to view invoices and make payments.\n- Remarketing Management System. A division of  that provides remarketing services for commercial consignors.  RMS provides white label branded websites in which consignors can market and sell “upstream” off-lease and company owned vehicles.\n  "
+    "version" : "2.4",
+    "title" : "RECEIPTS API 2.4",
+    "contact" : {
+      "name" : "OASIS Support",
+      "email" : "sunil.pandey@coxautoinc.com",
+      "url" : "http://www.coxautoinc.com"
+    },
+    "license" : {
+      "name" : "Cox Automotive",
+      "url" : "http://www.coxautoinc.com"
+    },
+    "description" : "#  Purpose\n\n This document addresses the requirements of Cox Automotive to provide an\n application programming interface (API) that creates and returns dealer receipts information from the Cox Automotive Wholesale Billing and\n Payments system that is built on Oracle's E-Business Suite. Receipts API (this API) is created to cater the need of rendering the buyer receipt details to the calling applications and creating the buyer payments in Oracle EBS.\n\n   \n #  Architecture\n   In order to present/render transactions, Receipts API accepts input parameters (request payload) from the calling application through a composite service built on OSB in JSON format. The output (response payload) is returned in JSON format to the calling application. This action is performed by GET method of the API.\n\n   Similarly, in order to process/create transactions, Receipts API accepts input parameters (request payload) from the calling application through a composite service built on OSB in JSON format. Then the  API creates/updates transactions in Oracle EBS tables and returns back the status (response payload) is JSON format to the calling application. \n # Versioning\n   Calling application passes Version as a field in the HTTPS header for both GET and POST methods.  API uses the version number to control what version of the JSON output needs to be returned for GET method and what version of API to be used for POST method.\n # Application Authentication\n   Each calling application requires an Oracle Weblogic username and password to access the API. Value in the following httpS header fields need to be passed by the calling application-\n   \n   * Application-UserName\n   * Application-Password\n   \n   Oracle SOA authenticates the application user credentials. If the application user fails the authentication then the Oracle SOA returns 401 error message.\n \n # End User Authorization\n\n   **Manheim Customer Portal (CP)**\n\n   Receipts API considers the Manheim CP a trusted application and does not require that the customer user has an account in Oracle EBS. The Manheim CP is responsible for authenticating the customer user and providing the following parameters the httpS header-\n   * Manheim-Customer-UserName\n   * Manheim-Customer-Role\n   * Manheim-Customer-RepNumber\n\n If the CP sends a Customer Role of 'Order Services Rep' or 'Order Services Pay Rep', the API validates that the ‘RepNumber' parameter is provided in the httpS Header and returns an error if it is not valid.  A corresponding responsibility is created in Oracle EBS for each CP role to control the types of receipts that role can create in Oracle. One common application level user is created in Oracle EBS for both CP and CSA, and user name is identified as CPCSAUSER.\n\n **Manheim Customer Service Application (CSA)**\n\n Employee users are required to have an account in Oracle EBS before that can access the CSA.  Each user is assigned a specific CSA responsibility in EBS.  The Manheim CSA only passes the user name for the employee as 'Manheim-Employee-ID' in the httpS header when calling the API.   If the employee user does not have an account with CSA responsibility assigned in Oracle EBS, then API returns an error message.  The receipts API restricts the creation of types of receipts based on the responsibilities assigned to the passed employee user. One common application level user is created in Oracle EBS for both CP and CSA, and user name is identified as CPCSAUSER. \n   \n **Remarketing Management System (RMS)**\n     \n A new application level user \"rmsuser\" is created in Oracle EBS. RMS system does not send end user employee  'Manheim-Employee-ID' in the httpS header when calling the API, it only passes the application user. For POST method call, Oracle EBS checks the application user authorization access for creating the type of receipt (Check, ACH etc.) in Oracle EBS. If the authorization fails then the Oracle EBS API returns an error message. \n\n **Profile, Preferences, and Notifications (PPN)**\n\n A new application level user \"manppn\" will be created in Oracle EBS for PPN system to use while calling the API. PPN will not send end user employee  'Manheim-Employee-ID' in the httpS header when calling the API, it will only pass the application user. manppn user will not be provided authorization for creating any type of receipts in Oracle EBS, i.e. any POST method call initiated by manppn will be rejected by the Receipts API.\n   \n Appropriate responsibilities are assigned to each of the above mentioned Application users in Oracle EBS. API uses these responsibilities to control the Output Expansions that an Application is authorized to access, during GET method call. API returns an error message if the passed Application user is not authorized for the requested output expansions."
+  },
+  "externalDocs" : {
+    "description" : "Find out more about Receipts API 2.4",
+    "url" : "http://technology.man.co/Projects/home/G2G/Oracle%20APIs/Receipts%20API%202.4.docx"
   },
   "paths" : {
-    "/receipts2/" : {
+    "/receipts2" : {
       "get" : {
         "security" : [ {
           "basicAuth" : [ ]
         } ],
         "summary" : "Get Customer Reciepts",
         "tags" : [ "Endpoints" ],
-        "description" : "| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.silo4.com/receipts2    (**Current enviorment being used for Try it out**)\n| SILO5   | Receipts | https://zzz.silo5.com/receipts2\n| PREPROD | Receipts | https:// zzz.preprod.com/receipts2\n| PROD    | Receipts | https://zzz.com\n# External  Enpoints Table\n|\n| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.com/receipts2 \n| SILO5   | Receipts | https://zzz.com/receipts2\n| PREPROD | Receipts | https://zzz.com/receipts2\n| PROD    | Receipts | https://\n",
+        "description" : "| Environment    | Endpoint  | Type |      \n| ------- | ------------------------| ------ |\n| SILO4   | https://tmnh7o.manheim.com/receipts2 | Internal |\n| SILO5   | https://smnh5o.manheim.com/receipts2 | Internal |\n| PREPROD | https://smnh2o.manheim.com/receipts2 | Internal |\n| PROD    | https://ebizservices.manheim.com/receipts2 | Internal |\n| SILO4   | https://tmnh7opub.oracleoutsourcing.com/receipts2 | External |\n| SILO5   | https://smnh5opub.oracleoutsourcing.com/receipts2 | External |\n| PREPROD | https://smnh2opub.oracleoutsourcing.com/receipts2 | External |\n| PROD    | https://ebizservicespub.oracleoutsourcing.com/receipts2 | External |        \n",
         "parameters" : [ {
+          "in" : "header",
+          "name" : "Version",
+          "allowEmptyValue" : false,
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Please enter a valid API version, e.g. 2.3, 2.4 etc."
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Employee-ID",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Please enter a valid Oracle EBS User id"
+        }, {
+          "in" : "header",
+          "name" : "role",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ECSA_CUSTOMER_CARE", "ECSA_AR_SHARED_SERVICES", "ECSA_ISSUE_PAYMENT", "ECSA_RECEIVE_PAYMENT", "ECSA_TEST_ADMIN", "ECSA_VIEW" ]
+          },
+          "description" : "Please enter a valid CSA role, e.g. ECSA_ISSUE_PAYMENT, ECSA_AR_SHARED_SERVICES etc."
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Customer-Role",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ORDER_SVCS_AND_PAY_REP", "ORDER_SVCS_AND_PAY_COMP", "ADMIN", "ORDER_SVCS_REP" ]
+          },
+          "description" : "Please enter a valid CP Role (Applicable only for Customer Portal)"
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Customer-RepNumber",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Please enter a valid 100 million Customer Rep number (Applicable only for Customer Portal)"
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Customer-UserName",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Please enter a valid CP User Name (Applicable only for Customer Portal)"
+        }, {
           "in" : "query",
           "name" : "customerNumber",
           "required" : true,
-          "description" : "Specifies the customer whose invoices should be returned.  Valid values: Auction Access 5 million  4.9 million (Commercial)\n 7 million (Retail/Employee)  12 million (Floorplan\nAgency)  13 Million (Consignor Netting) Mega Dealer RMS Customer Number.",
           "schema" : {
             "type" : "string"
-          }
+          },
+          "description" : "Specifies the customer whose receipts should be returned.  Valid values are-\n- Auction Access 5 million   \n- 4.9 million (Commercial)\n- 7 million (Retail/Employee)  \n- 12 million (Floorplan Agency)  \n- 13 Million (Consignor Netting) \n- Mega Dealer \n- RMS Customer Number\n\nAPI derives receipts for the passed customerNumber if receiptID parameter value is not passed. If receiptID value is passed then receipt details are derived for the passed receiptID and customerNumber value are used for deriving receipt amount, overpayment amount, payer customer, and applications array data."
+        }, {
+          "in" : "query",
+          "name" : "receiptID",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Only return the receipt for the specified Oracle receipt id. If the value in this parameter is passed then API does not validate the link between customerNumber & receiptID and derives Oracle receipt information for the passed receiptID. API uses customerNumber value for deriving receipt amount, overpayment amount, payer customer, and applications array data. If none of the applied transactions have sold-to customer number same as the passed input customerNumber then API returns error message with 404 error code. API ignores all other input parameters for deriving receipt details (except customer number, output expansions) when receiptID is passed. "
+        }, {
+          "in" : "query",
+          "name" : "receiptNumber",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Only return the receipt for the specified Oracle receipt number and customerNumber. If receiptID is also passed by calling application then the receiptNumber value is ignored."
+        }, {
+          "in" : "query",
+          "name" : "startDate",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Only return transactions from the specified receipt date. If no value is provided then transactions are returned irrespective of the date."
+        }, {
+          "in" : "query",
+          "name" : "endDate",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Only return transactions up to the specified receipt date. If no value is provided then transactions are returned irrespective of the date."
+        }, {
+          "in" : "query",
+          "name" : "includeUnappliedReceipts",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "description" : "If the value for this parameter is passed as “true” only then API returns fully or partially unapplied and on-account receipts data. "
+        }, {
+          "in" : "query",
+          "name" : "includeAppliedReceipts",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "description" : "If the value for this parameter is passed as “true” only then API returns fully and partially applied receipts data.   "
+        }, {
+          "in" : "query",
+          "name" : "includePendingReceipts",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "description" : "If the value for this parameter is passed as “true” only then API returns Pending receipts data. "
+        }, {
+          "in" : "query",
+          "name" : "includeReversedReceipts",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "description" : "If the value for this parameter is passed as “true” only then API returns Reversed receipts data. "
+        }, {
+          "in" : "query",
+          "name" : "outputExpansions",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "RECEIPT DETAILS", "APPLICATIONS", "APPLICATIONS,RECEIPT DETAILS" ]
+          },
+          "description" : "**List of comma separated values that control which data objects are returned in the output JSON. Allowed values are- RECEIPT DETAILS, APPLICATIONS**\n•  Receipts array containing both partially and fully applied receipts header data is always be returned\n\n•  All expansions are optional and must be requested in order to receive the data object\n\n•  Output expansions must be passed in uppercase and if more than one output expansions need to be passed then they should be separated by a comma (,) without any space after comma(,)"
         } ],
         "responses" : {
           "200" : {
             "description" : "This table describes the JSON for a successful response.",
             "content" : {
-              "*/*" : {
+              "application/json" : {
                 "schema" : {
                   "type" : "object",
                   "properties" : {
                     "truncation" : {
                       "$ref" : "#/components/schemas/truncation"
-                    },
-                    "itemNumber" : {
-                      "type" : "number"
                     },
                     "receipts" : {
                       "$ref" : "#/components/schemas/receipts"
@@ -51,10 +219,16 @@
             }
           },
           "400" : {
-            "description" : "- Application did not provide requiredhttpS header fields.\n- RepNumber required in httpS header for user role provided\n- Invalid Expansion\n- Invalid date value\n- Invalid boolean value ‘xxx’\n- customerNumber not found\n- receiptID not found\n- No receipts  were found for the passed input filters"
+            "description" : "- Application did not provide requiredhttpS header fields\n- RepNumber required in httpS header for user role provided\n- Invalid Expansion\n- Invalid date value\n- Invalid boolean value `xxx`\n- No receipts  were found for the passed input filters"
           },
           "401" : {
-            "description" : "- Authorization Required (invalid application user name or password).\n- Application does not have authorization to access the requested outputExpansions."
+            "description" : "- Authentication Required (invalid application user name or\npassword).\n- Application does not have authorization to access the requested\noutputExpansions."
+          },
+          "404" : {
+            "description" : "- customerNumber not found \n- receiptID not found \n- No applied transactions found for the passed customerNumber and receiptID"
+          },
+          "500" : {
+            "description" : "- The calling system can retry the calling the Receipts API for server errors.  The  recommendation is to retry every 15 minutes for up to 8 hours before timing out."
           }
         }
       },
@@ -64,49 +238,68 @@
         } ],
         "summary" : "Post Reciept Request",
         "tags" : [ "Endpoints" ],
-        "description" : "| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.com/receipts2    (**Current enviorment being used for Try it out**)\n| SILO5   | Receipts | https://zzz.com/receipts2\n| PREPROD | Receipts | https://zzz.com/receipts2\n| PROD    | Receipts | https://\n# External  Enpoints Table\n|\n| Env.    | Resource | Internal Endpoint        \n| ------- | -------- |  ------------------------|\n| SILO4   | Receipts | https://zzz.com/receipts2 \n| SILO5   | Receipts | https://zzz.com/receipts2\n| PREPROD | Receipts | https://zzz.com/receipts2\n| PROD    | Receipts | https://\n",
-        "responses" : {
-          "201" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "type" : "object",
-                  "properties" : {
-                    "receiptStatus" : {
-                      "type" : "string"
-                    },
-                    "pendingReceiptType" : {
-                      "type" : "string"
-                    },
-                    "recieptID" : {
-                      "type" : "number"
-                    },
-                    "receiptNumber" : {
-                      "type" : "string"
-                    },
-                    "serialNumber" : {
-                      "type" : "string"
-                    },
-                    "success" : {
-                      "type" : "boolean"
-                    },
-                    "errorMessage" : {
-                      "type" : "string"
-                    }
-                  }
-                }
-              }
-            }
+        "operationId" : "postReceipts",
+        "description" : "| Environment    | Endpoint  | Type |      \n| ------- | ------------------------| ------ |\n| SILO4   | https://tmnh7o.manheim.com/receipts2 | Internal |\n| SILO5   | https://smnh5o.manheim.com/receipts2 | Internal |\n| PREPROD | https://smnh2o.manheim.com/receipts2 | Internal |\n| PROD    | https://ebizservices.manheim.com/receipts2 | Internal |\n| SILO4   | https://tmnh7opub.oracleoutsourcing.com/receipts2 | External |\n| SILO5   | https://smnh5opub.oracleoutsourcing.com/receipts2 | External |\n| PREPROD | https://smnh2opub.oracleoutsourcing.com/receipts2 | External |\n| PROD    | https://ebizservicespub.oracleoutsourcing.com/receipts2 | External |        ",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Version",
+          "allowEmptyValue" : false,
+          "required" : true,
+          "schema" : {
+            "type" : "string"
           },
-          "400" : {
-            "description" : "- Application did not provide requiredhttpS header fields.\n- Application (CSA/RMS) user is not authorized to create ‘xxx’ receipt type\n- RepNumber required inhttpS header for user role provided\n- Invalid date value\n- string value 'xxx' is not a valid value for paymentMethod:id\n- string value 'xxx' is not a valid enumeration value for currency\n- Invalid boolean value ‘xxx’ hold payment\n- string value 'xxx' is not a valid enumeration value for invoice source\n- Check number value is not passed for ‘xxx’ payment type\n- Suspicious flag value is not passed for ‘xxx’ payment type\n- Suspicious reason value is not passed when receipt was flagged as suspicious\n- Number of hundreds value ‘nnn’ is not valid\n- Passed total receipt amount does not match with the sum of application, cash handling fee, and on-account amounts.\n- Cash handling fee line/adjustment already exists for transaction(s) nnnn (, nnnn…)\n- Passed application amount for transaction(s) nnnn (, nnnn…) is more than the transaction open amount \n- Passed Sales Order <salesorderid> is in ENTERED or CANCELLED status\n- Invalid combination of primary and remote locations was passed \n- Passed location <locationcode> is inactive or end dated in Oracle\n- Depository bank account is not defined for the passed remote location\n- customerNumber not found (4004 ERROR CODE)\n- Bank account is either inactive or invalid for the passed bank account id (4004 ERROR CODE)"
+          "description" : "Please enter a valid API version, e.g. 2.3, 2.4 etc."
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Employee-ID",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
           },
-          "401" : {
-            "description" : "Authorization Required (invalid application user name"
-          }
-        },
+          "description" : "Please enter a valid Oracle EBS User id"
+        }, {
+          "in" : "header",
+          "name" : "role",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ECSA_CUSTOMER_CARE", "ECSA_AR_SHARED_SERVICES", "ECSA_ISSUE_PAYMENT", "ECSA_RECEIVE_PAYMENT", "ECSA_TEST_ADMIN", "ECSA_POST_CHARGE", "ECSA_VIEW" ]
+          },
+          "description" : "Please enter a valid CSA role, e.g. ECSA_ISSUE_PAYMENT, ECSA_AR_SHARED_SERVICES etc."
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Customer-Role",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ORDER_SVCS_AND_PAY_REP", "ORDER_SVCS_AND_PAY_COMP", "ADMIN", "ORDER_SVCS_REP" ]
+          },
+          "description" : "Please enter a valid CP Role (Applicable only for Customer Portal)"
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Customer-RepNumber",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Please enter a valid 100 million Customer Rep number (Applicable only for Customer Portal)"
+        }, {
+          "in" : "header",
+          "name" : "Manheim-Customer-UserName",
+          "allowEmptyValue" : true,
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "Please enter a valid CP User Name (Applicable only for Customer Portal)"
+        } ],
         "requestBody" : {
+          "description" : "This is POST methods request payload body",
+          "required" : true,
           "content" : {
             "application/json" : {
               "schema" : {
@@ -250,8 +443,59 @@
                 }
               }
             }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "receiptStatus" : {
+                      "type" : "string",
+                      "maxLength" : 30
+                    },
+                    "pendingReceiptType" : {
+                      "type" : "string",
+                      "maxLength" : 60
+                    },
+                    "recieptID" : {
+                      "type" : "integer"
+                    },
+                    "receiptNumber" : {
+                      "type" : "string",
+                      "maxLength" : 30
+                    },
+                    "serialNumber" : {
+                      "type" : "string",
+                      "maxLength" : 30
+                    },
+                    "success" : {
+                      "type" : "boolean"
+                    },
+                    "errorMessage" : {
+                      "type" : "string",
+                      "maxLength" : 100
+                    }
+                  }
+                }
+              }
+            }
           },
-          "required" : true
+          "400" : {
+            "description" : "- Application did not provide requiredhttpS header fields\n- Application (CSA/RMS) user is not authorized to create `xxx` receipt type\n- RepNumber required inhttpS header for user role provided\n- Invalid date value\n- String value `xxx` is not a valid value for paymentMethod:id\n- String value `xxx` is not a valid enumeration value for currency\n- Invalid boolean value ‘xxx' for hold payment\n- string value `xxx` is not a valid enumeration value for invoice source\n- Check number value is not passed for `xxx` payment type\n- Suspicious flag value is not passed for `xxx` payment type\n- Suspicious reason value is not passed when receipt was flagged as suspicious\n- Number of hundreds value `nnn` is not valid\n- Passed total receipt amount does not match with the sum of application, cash handling fee, and on-account amounts.\n- Cash handling fee line/adjustment already exists for transaction(s) nnnn (, nnnn…)\n- Passed application amount for transaction(s) nnnn (, nnnn…) is more than the transaction open amount \n- Passed Sales Order <salesorderid> is in ENTERED or CANCELLED status\n- Invalid combination of primary and remote locations was passed \n- Passed location <locationcode> is inactive or end dated in Oracle\n- Depository bank account is not defined for the passed remote location"
+          },
+          "401" : {
+            "description" : "Authorization Required (invalid application user name)"
+          },
+          "404" : {
+            "description" : "- customerNumber not found\n- Bank account is either inactive or invalid for the passed bank account id"
+          },
+          "500" : {
+            "description" : "The calling system can retry the calling the Receipts API for server errors.  The  recommendation is to retry every 15 minutes for up to 8 hours before timing out."
+          }
         }
       }
     }
@@ -260,89 +504,125 @@
     "schemas" : {
       "receipts" : {
         "type" : "array",
-        "description" : "|values|EBS Data Mapping (Table.Column)|Length|\n|------|-------------------------------|------|\n|This array contains receipt header level information|\n",
+        "description" : "This array contains receipt header level information",
         "items" : {
           "properties" : {
             "customerNumber" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Customer Number\n- EBS Data Mapping (Table.Column)\n  * Hz_cust_accounts.account_number for\n- Length\n  * 60"
+              "maxLength" : 60,
+              "description" : "API returns the same customer number value as passed in the\ninput parameter. This customer could be different from the receipt\ncustomer, when receipt id is passed. If a value is populated in\npayerCustomerNumber field then this field value (customerNumber)\nrepresents the subsidiary (child) customer whose invoices were\npaid by payerCustomerNumber customer (parent)."
+            },
+            "payerCustomerNumber" : {
+              "type" : "string",
+              "maxLength" : 60,
+              "description" : "If the passed input customerNumber is same as the receipt customer number then the API response does not include this data attribute/tag, since its value will be blank (Null). \nIf they are different then API returns receipt customer number in this field. In such case, this field value represents the parent customer who paid the invoice(s) of the subsidiary/child customer (customerNumber).\nThis logic is applicable only for receipt transactions when receiptID input value is passed and is not applicable for non-receipt transactions, e.g. pending floorplan, pending ACH etc."
+            },
+            "payerCustomerName" : {
+              "type" : "string",
+              "maxLength" : 360,
+              "description" : "API returns the customer name of the payerCustomerNumber, whenever applicable."
             },
             "receiptDate" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Date receipt was created in Oracle in UTC - YYYY-MM-DDTHH:MM:S-UTC\n- EBS Data Mapping (Table.Column)\n  For payment types other than ACH pending and floorplan use - ar_cash_receipts_all.receipt_date\n  For ACH pending payments, derive receipt date as follows:\n  -  Get payment date from the custom audit table\n  -  Get creation date of the transaction, data is not found in audit table  \n  For floorplan payment type derive creation date as follows:\n  -  Get payment date from the custom audit table\n  -  Get payment date from the floorplan workflow table, if data is not found in the audit table\n\n- Length\n  * 30"
+              "maxLength" : 30,
+              "description" : "Date receipt was created in Oracle in UTC - YYYY-MM-DDTHH:MM:S-UTC"
             },
             "receiptDateString" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Payment date in MM/DD/YYYY format\n- EBS Data Mapping (Table.Column)\n  * Use the above logic to derive date\n\n- Length\n  * 30"
+              "maxLength" : 30,
+              "description" : "Payment date in MM/DD/YYYY format"
             },
             "receiptID" : {
-              "type" : "string",
-              "description" : "description\n- values\n  *  Oracle EBS payment identifier of a receipt\n- EBS Data Mapping (Table.Column)\n  * Pending Floorplan & Pending ACH:\n  Invoice: ra_customer_trx_all.customer_trx_id\n  Sales Order: oe_order_headers_all.header_id\n  Receipt: ar_cash_receipts_all.cash_receipt_id\n\n\n- Length\n  * 25"
+              "type" : "integer",
+              "description" : "Oracle EBS payment identifier of a receipt",
+              "maxLength" : 25
             },
             "receiptBatchName" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  This is Oracle EBS receipt batch name, \n  applicable for the following type of receipts:\n      -  Cash\n      -  Money Order\n      -  Cashier’s Check\n      -  Check\n\n- EBS Data Mapping (Table.Column)\n  * AR_BATCHES_V.name\n\n\n- Length\n  * 20"
+              "maxLength" : 20,
+              "description" : "This is Oracle EBS receipt batch name, applicable for the following type of receipts-Cash, Money Order, Cashier's Check, Check"
             },
             "receiptNumber" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  This is Oracle EBS receipt number\n\n- EBS Data Mapping (Table.Column)\n  * Pending Floorplan & Pending ACH:\n    Invoice: ra_customer_trx_all.trx_number\n    Sales Order: oe_order_headers_all.order_number\n    \n    Receipt:ar_cash_receipts_all.receipt_number \n- Length\n  * 30"
+              "maxLength" : 30,
+              "description" : "This is Oracle EBS receipt number"
+            },
+            "serialNumber" : {
+              "type" : "string",
+              "maxLength" : 30,
+              "description" : "This is check, money order, cashiers check number"
             },
             "receiptDescription" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Populated with floor plan agency name for \n  floorplan payment, bank name||account# for ACH, customer name||account# for Consignor netting\n\n- EBS Data Mapping (Table.Column)\n  * Multiple places\n- Length\n  * 240"
+              "maxLength" : 240,
+              "description" : "API returns floor plan agency name for floorplan payment, bank name||account# for ACH, customer name||account# for Consignor netting"
             },
             "pendingDescription" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Hold reason name, e.g. Title Absent\n\n- EBS Data Mapping (Table.Column)\n  * From man_ar_support_pkg.get_payment_hold_reason \n- Length\n  * 60"
+              "maxLength" : 60,
+              "description" : "Hold reason name, e.g. Title Absent"
             },
             "receiptAmount" : {
               "type" : "number",
-              "description" : "description\n- values\n  *  This is the Oracle EBS total receipt amount\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts.amount\n- Length\n  * Not Specified"
+              "description" : "This is the Oracle EBS total receipt amount.\nIf the passed input customerNumber is same as the receipt customer  then API returns total receipt amount. If they are different then API loops through each transaction (invoices, sales orders, and credit memos) applied to the receipt and derives application amount, where the applied transactions' sold-to customer number is same as the input customerNumber. API returns the sum of all application amounts for the derived transactions."
             },
             "overPaymentAmount" : {
               "type" : "number",
-              "description" : "description\n- values\n  *  Remaining On-Account and un-applied amount on \n  the receipt\n\n- EBS Data Mapping (Table.Column)\n  * ar_receivable_applications_all.SUM(b.AMOUNT_APPLIED) \n  for STATUS in('ACC', 'UNAPP')\n- Length\n  * Not Specified"
+              "description" : "Remaining On-Account and Un-Applied amount on the receipt. If the passed input customerNumber is different from the receipt customer then the API response does not include this data attribute/tag, since its value will be blank (Null). If they are same then API returns the sum of un-applied and true on-account amounts "
             },
             "receiptSource" : {
               "type" : "string",
-              "description" : "description\n- values\n  * This is payment source- RECEIPT, PENDING, NETTING, based on payment status\n    PENDING: Held Check, Ach Pending, \n    Initiated/On-Hold Floorplan \n    RECEIPT: Cash, Check, Ach Immediate, Money Order, Cashier’s Check, Consignor Netting, Credit Card, eCheck, Wire Transfer, Incoming ACH, RMS I/C\n\n\n- EBS Data Mapping (Table.Column)\n  * From \n  man_ar_support_pkg.get_payment_hold_reason api\n- Length\n  * 60"
+              "maxLength" : 25,
+              "description" : "This is payment source- RECEIPT, PENDING, NETTING, based on the payment status-\n\n    - PENDING- Held Check, Ach Pending, Initiated/On-Hold Floorplan\n     \n    - RECEIPT- Cash, Check, Ach Immediate, Money Order, Cashier's Check, Consignor Netting, Credit Card, eCheck, Wire Transfer, Incoming ACH, RMS I/C"
             },
             "currency" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Currency code. Valid values are USD and CAD\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_all.currency_code\n\n- Length\n  * 15"
+              "description" : "Currency code. Valid values are USD and CAD",
+              "maxLength" : 15,
+              "enum" : [ "USD", "CAD" ]
             },
             "receiptMethodType" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Payment method type. \n     Payment method type. \n      Please refer the mapping table below for mapping between Payment Method type, status, state, and pending receipt type.\n\n\n\n\n- EBS Data Mapping (Table.Column)\n  * Ar_receipt_methods.attribute2\n- Length\n  * 30"
+              "description" : "This is Payment Method Type",
+              "maxLength" : 30
             },
             "receiptStatus" : {
               "type" : "string",
-              "description" : "description\n- values\n  * Please refer the mapping table below for mapping between Payment Method type, status, state, and pending receipt type.\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_v.state \n\n- Length\n  * 30"
+              "description" : "",
+              "maxLength" : 30
             },
             "receiptState" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Please refer the mapping table below for mapping between Payment Method type, status, state, and pending receipt type.\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_v.receipt_status_dsp \n\n- Length\n  * 30"
+              "description" : "",
+              "maxLength" : 30
             },
             "pendingReceiptType" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Will return value only for pending transactions, e.g. held check, pending ACH, pending/on-hold floorplan.\n\n- EBS Data Mapping (Table.Column)\n  * From man_ar_support_pkg.get_payment_hold_reason \n\n- Length\n  * 60"
+              "description" : "API returns value in this field  only for pending transactions, e.g. held check, pending ACH, pending/on-hold floorplan.",
+              "maxLength" : 60
             },
             "reversalReason" : {
               "type" : "string",
-              "description" : "description\n- values\n  * This is the reason for the reversed receipt.\n\n- EBS Data Mapping (Table.Column)\n  * Ar_cash_receipts_all.reversal_reason_code if the receipt status = ‘REV’ \n  api\n- Length\n  * 60"
+              "description" : "This is the reason for the reversed receipt.",
+              "maxLength" : 60
             },
             "receiptMethodTypeDetails" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Populated for floorplan and ACH buyer payments\n\n- EBS Data Mapping (Table.Column)\n  * Floorplan: ra_customer_trx_all.party_name\n    ACH: concatenation of bank name||account number\n- Length\n  * 60"
+              "description" : "Populated for floorplan and ACH buyer payments",
+              "maxLength" : 60
             },
             "numberOfHundredDollars" : {
-              "type" : "number",
-              "maxLength" : 0,
-              "description" : "description\n- values\n  *  Applicable only for cash receipts\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.noofhundreddollars\n  api\n- Length\n  * Not Specified"
+              "type" : "integer",
+              "description" : "Applicable only for cash receipts"
             },
             "employeeUsername" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Employee username, applicable only for cash or cash equivalent receipts\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.employeeusername\n- Length\n  * 240"
+              "description" : "Employee username, applicable only for cash or cash equivalent receipts",
+              "maxLength" : 240
+            },
+            "receiptRefundEligible" : {
+              "type" : "boolean",
+              "description" : "true value is returned in this data attribute if a receipt passes the validations for refund eligibility. This data field is applicable only when Receipts API is called with includeUnappliedReceipts input filter, i.e. for on-account receipts (includes both on-account and unapplied receipts). For all other filters false value is returned."
             },
             "receiptDetails" : {
               "$ref" : "#/components/schemas/receiptDetails"
@@ -356,7 +636,7 @@
       },
       "receiptDetails" : {
         "type" : "object",
-        "description" : "This object contains customer, auction location, payer, and receipt application information.",
+        "description" : "This object contains customer, auction location, payer, and receipt  application information.",
         "properties" : {
           "customer" : {
             "$ref" : "#/components/schemas/customer"
@@ -374,73 +654,89 @@
         "properties" : {
           "customerName" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Customer Name\n\n- EBS Data Mapping (Table.Column)\n  * hz_cust_accounts.account_name\n- Length\n  * 360"
+            "description" : "API returns the customer name of the passed customerNumber. To get this value and other details in this array in the response payload, “RECEIPT DETAILS” output expansion must be passed.",
+            "maxLength" : 360
           },
           "address1" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Buyer address line 1\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.address1\n- Length\n  * 30"
+            "description" : "Buyer address line 1",
+            "maxLength" : 30
           },
           "address2" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Buyer address line 2\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.address2\n- Length\n  * 30"
+            "description" : "Buyer address line 1",
+            "maxLength" : 30
           },
           "city" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Buyer address city name\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.city\n- Length\n  * 30"
+            "description" : "Buyer address city name",
+            "maxLength" : 30
           },
           "state" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Buyer address state name\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.state\n- Length\n  * 30"
+            "description" : "Buyer address state name",
+            "maxLength" : 30
           },
           "postal" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Buyer address postal code\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.postal_code\n- Length\n  * 30"
+            "description" : "Buyer address postal code",
+            "maxLength" : 30
           },
           "country" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Buyer address country code\n\n- EBS Data Mapping (Table.Column)\n  * hz_locations.country\n- Length\n  * 30"
+            "description" : "Buyer address country code",
+            "maxLength" : 30
           }
         }
       },
       "auction" : {
         "type" : "object",
-        "description" : "This object contains auction location details. Applicable for CASH, CASHIERS CHECK, and MONEY ORDER payment types",
+        "description" : "This object contains auction location details where payment was received. Applicable for CASH, CASHIERS CHECK, and MONEY ORDER payment types",
         "properties" : {
           "auctionLocation" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  This is primary auction facilitating location name\n\n- EBS Data Mapping (Table.Column)\n  * JTF_RS_DEFRESOURCES_V.resource_name\n- Length\n  * 240"
+            "description" : "This is primary auction location name where payment was received from the buyer",
+            "maxLength" : 240
           },
           "auctionCode" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  This is primary auction facilitating location code\n\n- EBS Data Mapping (Table.Column)\n  * JTF_RS_DEFRESOURCES_V.attribute1\n- Length\n  * 25"
+            "description" : "This is primary auction location code where payment was received from the buyer",
+            "maxLength" : 25
           },
           "remoteAuctionCode" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  This is remote auction location code and will be retuned only when remote location code was provided by the calling application for cash, check, cashier’s check, and money order payments.\n\n- EBS Data Mapping (Table.Column)\n  * JTF_RS_DEFRESOURCES_V.attribute1 or ar_cash_receipts_all DFF attribute\n- Length\n  * 25"
+            "description" : "This is remote auction location code and is retuned only when remote location code was provided by the calling application for cash, check, cashiers check, and money order payments",
+            "maxLength" : 25
           },
           "address1" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Primary Auction Location address line 1\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+            "description" : "Primary Auction Location address line 1 for the payment location",
+            "maxLength" : 30
           },
           "address2" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Primary Auction Location address line 2\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+            "description" : "Primary Auction Location address line 2 for the payment location",
+            "maxLength" : 30
           },
           "city" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Primary Auction Location city name\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+            "description" : "Primary Auction Location city name for the payment location",
+            "maxLength" : 30
           },
           "state" : {
             "type" : "string",
-            "description" : "description\n- values\n  * Primary Auction Location state name\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+            "description" : "Primary Auction Location state name for the payment location",
+            "maxLength" : 30
           },
           "postal" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Primary Auction Location postal code\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+            "description" : "Primary Auction Location postal code for the payment location",
+            "maxLength" : 30
           },
           "country" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Primary Auction Location country code\n\n- EBS Data Mapping (Table.Column)\n  * Use package- man_ar_support_pkg.get_auction_code_location\n- Length\n  * 30"
+            "description" : "Primary Auction Location country code for the payment location",
+            "maxLength" : 30
           }
         }
       },
@@ -450,131 +746,175 @@
         "properties" : {
           "name" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer first name & last name\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.firstname|| ' ' ||lastname\n- Length\n  * 300"
+            "description" : "Payer first name & last name",
+            "maxLength" : 300
           },
           "repNumber" : {
             "type" : "string",
-            "description" : "description\n- values\n  * Payer rep number\n\n- EBS Data Mapping (Table.Column)\n  * hz_parties.attribute20\n- Length\n  * 25"
+            "description" : "Payer rep number",
+            "maxLength" : 25
           },
           "idType" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer id description\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legaliddescription\n- Length\n  * 150"
+            "description" : "Payer id description",
+            "maxLength" : 150
           },
           "idDescription" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer id description\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legaliddescription\n  * 150"
+            "description" : "Payer id description",
+            "maxLength" : 150
           },
           "idNumber" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer identification number\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationnumber\n- Length\n  * 150"
+            "description" : "Payer identification number",
+            "maxLength" : 150
           },
           "issuedByCountry" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer identification issuing country\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationcountry\n- Length\n  * 150"
+            "description" : "Payer identification issuing country",
+            "maxLength" : 150
           },
           "issuedByState" : {
             "type" : "string",
-            "description" : "description\n- values\n  * Payer id issuing state\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationst_province\n- Length\n  * 360"
+            "description" : "Payer id issuing state",
+            "maxLength" : 360
           },
           "idExpiration" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer id expiration date\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.legalidentificationexpdate\n- Length\n  * 15"
+            "description" : "Payer id expiration date",
+            "maxLength" : 15
           },
           "address1" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer address line 1\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.address\n- Length\n  * 240"
+            "description" : "Payer address line 1",
+            "maxLength" : 240
           },
           "city" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer address city name\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.city\n- Length\n  * 60"
+            "description" : "Payer address city name",
+            "maxLength" : 60
           },
           "state" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer address state name\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details. state\n- Length\n  * 60"
+            "description" : "Payer address state name",
+            "maxLength" : 60
           },
           "postal" : {
             "type" : "string",
-            "description" : "description\n- values\n  * Payer address postal code\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.zip\n- Length\n  * 60"
+            "description" : "Payer address postal code",
+            "maxLength" : 60
           },
           "country" : {
             "type" : "string",
-            "description" : "description\n- values\n  *  Payer address country code\n\n- EBS Data Mapping (Table.Column)\n  * man_ar_cash_receipt_details.country\n- Length\n  * 60"
+            "description" : "Payer address country code",
+            "maxLength" : 60
           }
         }
       },
       "applications" : {
         "type" : "array",
-        "description" : "This array of objects contains application information for receipt that is created. This array will contain all type of applications, including invoice, credit memo, writeoff, refund, or on-account.",
+        "description" : "This array contains application information of the receipt. This array contains all type of applications, including invoice, sales order on-account, credit memo, writeoff, refund, or on-account, except when the input customer number is different from the receipt customer number and receiptID is passed. In such case, API does not return following application types- \n\n  - On Account- True on-account without sales order application\n\n  - Write Off\n\n  - Refund\n\nIf the passed input customerNumber is same as the receipt customer number then the API returns all applied transactions (functionality as of version 2.3).  If they are different then the API loops through each applied transaction (invoice, sales order on-account, and credit memo) and returns only those applied transactions that have sold-to customer number same as the input customerNumber. If none of the applied transactions have sold-to customer number same as the passed input customerNumber then API returns error message with 404 error code. This logic is applicable only when receiptID is passed.",
         "items" : {
           "type" : "object",
           "properties" : {
             "consignmentID" : {
-              "type" : "number",
-              "description" : "description\n- values\n  *  Consignment identifier\n\n- EBS Data Mapping (Table.Column)\n  * ra_customer_trx_all.attribute2\n- Length\n  * Not Specified"
+              "type" : "integer",
+              "description" : "Consignment identifier"
             },
             "year" : {
               "type" : "string",
-              "description" : "description\n- values\n  * Vehicle make year\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.year\n- Length\n  * 240"
+              "description" : "Vehicle make year",
+              "maxLength" : 240
             },
             "make" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Vehicle make \n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.make\n- Length\n  * 240"
+              "description" : "Vehicle make",
+              "maxLength" : 240
             },
             "model" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Vehicle model\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.model\n- Length\n  * 240"
+              "description" : "Vehicle model",
+              "maxLength" : 240
             },
             "trim" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Vehicle trim style\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.subseries_trim_code\n- Length\n  * 240"
+              "description" : "Vehicle trim style",
+              "maxLength" : 240
             },
             "vin" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Vehicle Identification Number\n\n- EBS Data Mapping (Table.Column)\n  * man_om_consignments.vin\n- Length\n  * 240"
+              "description" : "Vehicle Identification Number",
+              "maxLength" : 240
             },
             "invoiceID" : {
-              "type" : "number",
-              "description" : "description\n- values\n  *  Invoice application: Invoice id of the applied invoice. It can also be credit memo id for consignor netting.\n    Sales Order application: sales order id of the applied sales order. \n\n\n- EBS Data Mapping (Table.Column)\n  * Ra_customer_trx_all.customer_trx_id,\n    Oe_order_headers_all.header_id\n\n- Length\n  * Not Specified"
+              "type" : "integer",
+              "description" : "Invoice application- Invoice id of the applied invoice. It can also be  credit memo id for consignor netting. Sales Order application- sales order id of the applied sales order."
             },
             "invoiceNumber" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Invoice application: Invoice number of the applied invoice. It can also be credit memo number for consignor netting.\n    Sales Order application: sales order number of the applied sales order. \n\n- EBS Data Mapping (Table.Column)\n  * ra_customer_trx_all.trx_number,\n    oe_order_headers_all.order_number,\n    ar_receivables_trx_all.name\n\n- Length\n  * 50"
+              "description" : "Invoice application- Invoice number of the applied invoice. It can also be credit memo number for consignor netting. Sales Order application- sales order number of the applied sales order. ",
+              "maxLength" : 50
             },
             "invoiceSource" : {
               "type" : "string",
-              "description" : "description\n- values\n  * Values returned will be:\n    -  ‘INVOICE’: if the receipt is applied to an invoice or any application other than ORDER\n    -  ‘ORDER’: if the receipt is applied to a  sales order (on-account with SO in DFF)\n     \n\n\n- EBS Data Mapping (Table.Column)\n  * Ra_customer_trx_all.customer_trx_id,\n    Oe_order_headers_all.header_id\n\n- Length\n  * 30"
+              "description" : "Values returned are-\n    -  'INVOICE'- if the receipt is applied to an invoice or any application other than ORDER\n    -  'ORDER'- if the receipt is applied to a  sales order (on-account with SO in DFF)",
+              "maxLength" : 30
             },
             "invoiceType" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  This data attribute will be populated only for invoice source of INVOICE and ORDER (application type = ‘APPLIED’). For others it will be blank.\n    Invoice type from:\n      -  sales order transaction type for receipt applied to sales order\n      -  invoice transaction type for receipt applied to sales order\n\n\n- EBS Data Mapping (Table.Column)\n  * oe_transaction_types_all.attribute10\n\n    ra_cust_trx_types_all.attribute10 \n\n- Length\n  * 30"
+              "description" : "This data attribute is populated only for invoice source of INVOICE and ORDER (application type = ‘APPLIED'). For others it will be blank.\n\n  Invoice type from-\n    -  sales order transaction type for receipt applied to sales order\n    -  invoice transaction type for receipt applied to sales order",
+              "maxLength" : 30
             },
             "appliedInvoiceNumber" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Return invoice/credit memo number or sales order number based on the invoiceSource value.\n\n- EBS Data Mapping (Table.Column)\n  * ra_customer_trx_all.trx_number,\n    oe_order_headers_all.order_number\n\n- Length\n  * Not Specified"
+              "description" : "Return invoice/credit memo number or sales order number based on the invoiceSource value."
             },
             "appliedAmount" : {
               "type" : "number",
-              "description" : "description\n- values\n  *  This amount needs to be calculated based on the type of payment. This is the receipt amount applied to this invoice / credit memo/ sales order /refund/writeoff activity\n\n- EBS Data Mapping (Table.Column)\n  * ar_receivable_applications_all.amount_applied\n- Length\n  * Not Specified"
+              "description" : "This amount needs to be calculated based on the type of payment. This is the receipt amount applied to this invoice / credit memo/ sales order /refund/writeoff activity"
             },
             "remainingBalance" : {
               "type" : "number",
-              "description" : "description\n- values\n  *  This amount needs to be calculated based on the type of payment. This is the remaining balance on the applied invoice / sales order.\n\n- EBS Data Mapping (Table.Column)\n  * ar_payment_schedules_all.amount_due_remaining – For invoice\n- Length \n  * Not Specified"
+              "description" : "This amount needs to be calculated based on the type of payment. This is the remaining balance on the applied invoice / sales order."
             },
             "partialPayment" : {
               "type" : "boolean",
-              "description" : "description\n- values\n  *  If invoice or sales order balance is not zero then populate true else false\n\n- EBS Data Mapping (Table.Column)\n  * \n- Length\n  * Not Specified"
+              "description" : "If invoice or sales order balance is not zero then populate true else false"
             },
             "applicationType" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Identifies the type of application\n\n\n- EBS Data Mapping (Table.Column)\n  * Derived\n- Length\n  * 30"
+              "description" : "Identifies the type of application",
+              "maxLength" : 30
             },
             "applicationDate" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  Application date in UTC - YYYY-MM-DDTHH:MM:S-UTC\n\n- EBS Data Mapping (Table.Column)\n  * ar_receivable_applications_all.apply_date\n- Length\n  * 30"
+              "description" : "Application date in UTC - YYYY-MM-DDTHH:MM:S-UTC",
+              "maxLength" : 30
             },
             "activity" : {
               "type" : "string",
-              "description" : "description\n- values\n  *  This is the activity name defined in Oracle for application type of writeoff and refund. \n\nThis data attribute will be populated only for Writeoff and Refund application types. It will be blank for other application types.\nPlease see Application type / invoice type / activity table in section 4.2.3 for the possible values and their meaning\n\n\n            - EBS Data Mapping (Table.Column)\n              * ra_customer_trx_all.attribute2\n- Length\n    * Not Specified                      "
+              "description" : "This is the activity name defined in Oracle for application type of writeoff and refund. \nThis data attribute is populated only for Writeoff and Refund application types. It will be blank for other application types.",
+              "maxLength" : 50
+            },
+            "transactionLocationCode" : {
+              "type" : "string",
+              "description" : "This is the auction location code associated with the applied transaction.",
+              "maxLength" : 25
+            },
+            "transactionLocationName" : {
+              "type" : "string",
+              "description" : "This is the auction location name associated with the applied transaction.",
+              "maxLength" : 240
+            },
+            "saleDate" : {
+              "type" : "string",
+              "description" : "Sale date in UTC format - YYYY-MM-DDTHH:MM:S-UTC",
+              "maxLength" : 30
+            },
+            "universalKey" : {
+              "type" : "string",
+              "description" : "Concatenated value of (Sale Year + Sale Num + Lane Num + Run Num), separated by - character, e.g.: 2017-50-1-82",
+              "maxLength" : 30
             }
           }
         }
@@ -583,12 +923,10 @@
         "type" : "object",
         "properties" : {
           "truncated" : {
-            "type" : "boolean",
-            "description" : "|values|EBS Data Mapping (Table.Column)|Length|\n|-----|--------------------------------|------|\n|true:  The number of receipts returned was truncated to manage system performance|Get receipts API limits the number of receipt objects that are returned in the JSON response to prevent large responses from impacting system performance.  The number of receipts returned is a configurable parameter in Oracle.  Both receipts and payments api will use the same Oracle EBS profile option to control the truncation. If the number of receipts is limited the JSON includes the number of transactions returned.  |Not Specified\n"
+            "type" : "boolean"
           },
           "itemCount" : {
-            "type" : "number",
-            "description" : "|values|EBS Data Mapping (Table.Column)|Length|\n|------|--------------------------------|------|\n|Number of transactions returned|Value of Profile Option, MAN AR API Receipts API Threshold|Not Specified\n"
+            "type" : "number"
           }
         }
       }
