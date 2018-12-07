@@ -3,8 +3,8 @@ servers:
   - url: 'https://zzz.targethost1.com/'
   - url: 'https://zzz.targethost2.com/' 
 info:
-  version: "2.5"
-  title: RECEIPTS API 2.5
+  version: "2.5.xyz"
+  title: RECEIPTS API 2.5.xyz
   description: >-
     This document addresses the requirements of  to provide an application
     programming interface (API) that returns customer, consignment and invoice
