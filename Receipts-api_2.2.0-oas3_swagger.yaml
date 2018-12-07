@@ -5,6 +5,10 @@ servers:
 info:
   version: "2.5.xyz.abc"
   title: RECEIPTS API 2.5.xyz.abc
+=======
+  version: "2.5.xyz"
+  title: RECEIPTS API 2.5.xyz
+
   description: >-
     This document addresses the requirements of  to provide an application
     programming interface (API) that returns customer, consignment and invoice
