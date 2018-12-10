@@ -1,0 +1,997 @@
+# Every OpenAPI specification starts with the openapi keyword mentioning the version of the specification format. 
+# The version we use to document OASIS APIs is 3.0.1
+openapi: 3.0.1
+
+# The servers section specifies the API server and base URL. You can define one or several servers, 
+# such as DEV, SILO5, Pre-Prod, and production. The url field specifies the Server name of the host.
+# Specify both internal and external host names here
+servers:
+  - url: 'https://tmnh7o.manheim.com'
+    description: DEV Internal End Point
+  - url: 'https://tmnh7opub.oracleoutsourcing.com'
+    description: DEV External End Point
+  - url: 'https://smnh5o.manheim.com'
+    description: SILO5 Internal End Point
+  - url: 'https://smnh5opub.oracleoutsourcing.com'
+    description: SILO5 External End Point
+  - url: 'https://smnh2o.manheim.com'
+    description: Pre-Prod Internal End Point
+  - url: 'https://smnh2opub.oracleoutsourcing.com'
+    description: Pre-Prod External End Point
+  - url: 'https://ebizservicespub.oracleoutsourcing.com'
+    description: Production External End Point
+  - url: 'https://ebizservices.manheim.com'
+    description: Production Internal End Point
+
+# The info section contains information about the API, e.g. title, description (optional), version, contact for the API etc.  
+info:
+  # Define version of the API this document is for #
+  version: "2.3"
+  
+  # Define title of the API #
+  title: PAYMENTS API
+  
+  # Define support contact personal and his/her details, for the API #
+  contact:
+    name: OASIS Support
+    email: sunil.pandey@coxautoinc.com
+    url: 'http://www.coxautoinc.com'
+  license:
+    name: Cox Automotive
+    url: 'http://www.coxautoinc.com'
+    
+# The description field contains details about the API, like:
+#   - Release Notes				   
+#   - Purpose of the API
+#   - Architecture
+#   - Versioning
+#   - Application Authentication
+#   - End User Authorization for each consumer application    
+  description: |-
+
+    #  Purpose
+     This document addresses the requirements of Cox Automotive to provide an
+     application programming interface (API) that processes and returns payments to sellers (customers) information from the Cox Automotive Wholesale 
+     Billing and Payments system that is built on Oracle’s E-Business Suite. Payments API (this API) is created to cater the need of rendering the 
+     seller refunds, credit applications, and auto-netting of credits with debit items details to the calling applications 
+     and creating the seller refunds and/or auto-netting of credits with debit items in Oracle EBS.
+    #  Definitions
+       ### Oracle E-Business Suite (EBS)
+       Oracle's E-Business Suite consists of a collection of enterprise resource planning applications.  The Wholesale Billing and Payments system leverages the EBS Trading Community, Order Management and Receivables applications to deliver a billing and payment system for the Cox Automotive wholesale businesses.
+      ### Oracle Service Bus (OSB) 
+      Oracle Service Bus is a configuration-based, policy-driven service bus designed for SOA life cycle management.  It provides message brokering with routing and transformation of messages, along with service monitoring and administration.
+      ### JavaScript Object Notation (JSON)
+      JSON is an open-standard format that uses human-readable text to transmit data Objects consisting of attribute–value pairs. It is the most common data format used for asynchronous browser/server communication
+      ### Consignment
+      A custom data Object that was created for the Wholesale Billing and Payments system that contains information about vehicle sales.  All buyer and seller invoices are linked to a consignment.
+      
+      ### Manheim Customer Portal and Customer Service App (CP/CSA) 
+      Web applications that are used by customers and employees to view invoices and make payments.
+      
+      ### RMS: Remarketing Management System
+      A division of Cox Automotive that provides remarketing services for commercial consignors.  RMS provides white label branded websites in which consignors can market and sell “upstream” off-lease and company owned vehicles.
+      
+      ### CAG: Custom Account Generator
+      An account generator designed specifically for Manheim to derive the REVENUE distribution account for transactions (Invoices and Credit Memos) created in Oracle Receivables.
+      
+      ### PPP: Payment Process Profile
+      A payment process profile is a payment attribute assigned to documents payable, which specifies handling of the documents payable, payments, and payment instructions by Oracle Payments. Payment process profiles include several types of information, including specifications for payment instruction formatting and transmission/printing.
+
+      ### On-Account Receipt
+      An Oracle receipt is considered as on-account receipt that has amount more than $0 in Unapplied and/or On-Account status. It does not include on-account amount applied to a sales order.
+
+       
+    #  Architecture
+       In order to present/render transactions, Payments API accepts input parameters (request payload) from the calling application through a 
+       composite service built on OSB in JSON format. The output (response payload) is returned in JSON format to the calling application. 
+       This action is performed by GET method of the API.
+       Similarly, in order to process/create refund request, Payments API accepts input parameters (request payload) from the calling application 
+       through a composite service built on OSB in JSON format. Then the  API issues refunds and/or performs auto-netting of credits with debit items 
+       in Oracle EBS and returns back the status (response payload) is JSON format to the calling application. 
+    # Versioning
+       Calling application passes Version as a field in the HTTPS header for both GET and POST methods.  
+       API uses the version number to control what version of the JSON output needs to be returned for GET method and what version of API 
+       to be used for POST method.
+    # Application Authentication
+       Each calling application requires an Oracle Weblogic username and password to access the API. Value in the following httpS header fields 
+       need to be passed by the calling application-
+       
+       * Application-UserName
+       * Application-Password
+       
+       Oracle SOA authenticates the application user credentials. If the application user fails the authentication then the Oracle SOA returns 401 error message.
+     
+    # End User Authorization
+       **Manheim Customer Portal (CP)**
+       
+       
+       Payments API considers the Manheim CP a trusted application and does not require that the customer user has an account in Oracle EBS. The Manheim CP is responsible for authenticating the customer user and providing the following parameters the httpS header-
+      - Manheim-Customer-UserName
+      - Manheim-Customer-Role
+      - Manheim-Customer-RepNumber
+      
+      
+     If the CP sends a Customer Role of 'Order Services Rep' or 'Order Services Pay Rep', the API validates that the ‘RepNumber' parameter is provided in the httpS Header and returns an error if it is not valid.  
+     Customer Portal will call Payments API for displaying the payment transactions, not for issuing payments. One common application level user is created in Oracle EBS for both CP and CSA, and user name is identified as CPCSAUSER.
+     
+     
+     **Manheim Customer Service Application (CSA)**
+     
+     
+     Employee users are required to have an account in Oracle EBS before that can access the CSA.  
+     Each user is assigned a specific CSA responsibility in EBS.  The Manheim CSA only passes the user name for the employee as 'Manheim-Employee-ID' 
+     in the httpS header when calling the API.   If the employee user does not have an account with CSA responsibility assigned in Oracle EBS, 
+     then API returns an error message.  The Payments API restricts the issue of refunds and/or auto-netting based on the responsibilities (and funcation) 
+     assigned to the passed employee user. One common application level user is created in Oracle EBS for both CP and CSA, and user name is identified as CPCSAUSER. 
+       
+     **Remarketing Management System (RMS)**
+         
+     RMS does not use/call Payments API either GET or POST method. 
+     
+     
+     **Profile, Preferences, and Notifications (PPN)**
+     
+     
+     A new application level user "manppn" will be created in Oracle EBS for PPN system to use while calling the API. 
+     PPN will not send end user employee  'Manheim-Employee-ID' in the httpS header when calling the API, it will only pass the application user. 
+     manppn user will not be provided authorization for issuing the refunds in Oracle EBS, i.e. any POST method call initiated by manppn will be rejected by the Payments API.
+       
+     Appropriate responsibilities are assigned to each of the above mentioned Application users in Oracle EBS. 
+     API uses these responsibilities to control the Output Expansions that an Application is authorized to access, during GET method call. 
+     API returns an error message if the passed Application user is not authorized for the requested output expansions.
+
+
+# This section provides details of additional external documentation information. 
+# We will provide the url of any other reference document stored in the Rally/Sharepoint
+externalDocs:
+  description: Find out more about Payments API
+  url: 'http://technology.man.co/Projects/home/G2G/Oracle%20APIs/Payments%20API%202.4.docx'
+
+  
+# The paths section defines the endpoint (URI) of the API. All paths are relative to the 
+# API host server URL defined in the servers section. The full request URL is 
+# constructed as <server-url>/path, for example the path of payments API is /payments2
+# and URL is https://ebizservices.manheim.com/payments2
+#
+# For each path, we define the operations (HTTP methods) that can be used to access that path. 
+# OpenAPI 3.0 supports get, post, put, patch, delete, head, options, and trace. A single path can support multiple operations, 
+# for example, GET /payments2 to get the payment details and POST /payments2 to issue a refund.
+
+# The path (/payments2) needs to be defined only one time and within that path each operation/method needs to be defined separately, e.g.
+
+# /payments2:
+# get:
+# …….
+# …….
+# …….
+# post:
+# …….
+# …….
+# …….  
+
+paths:
+  /payments2:
+  
+# Define here the parametrs that are common for all the operations #
+# All header level parameters are common for both get and post methods of the payments api
+    parameters:
+        - in: header
+          name: Version
+          allowEmptyValue: false
+          required: true
+          schema:
+            type: string
+            default: "2.3"
+          description: 'Please enter a valid API version, e.g. 2.3, 2.4 etc.'
+          
+        - in: header
+          name: Manheim-Employee-ID
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+          description: Please enter a valid Oracle EBS User id
+          
+        - in: header
+          name: role
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+            # Define the list of static values i.e. enumerators for this field
+            enum:
+              - ECSA_CUSTOMER_CARE
+              - ECSA_AR_SHARED_SERVICES
+              - ECSA_ISSUE_PAYMENT
+              - ECSA_RECEIVE_PAYMENT
+              - ECSA_TEST_ADMIN
+              - ECSA_POST_CHARGE
+              - ECSA_VIEW
+          description: 'Please enter a valid CSA role, e.g. ECSA_ISSUE_PAYMENT, ECSA_AR_SHARED_SERVICES etc.'
+          
+        - in: header
+          name: Manheim-Customer-Role
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+            # Define the list of static values i.e. enumerators for this field
+            enum:
+              - ORDER_SVCS_AND_PAY_REP
+              - ORDER_SVCS_AND_PAY_COMP
+              - ADMIN
+              - ORDER_SVCS_REP
+          description: |-
+            Please enter a valid CP Role (Applicable only for Customer Portal)
+            
+            **Note: This header parameter is not used by Payments API**
+            
+        - in: header
+          name: Manheim-Customer-RepNumber
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+          description: |-
+            Please enter a valid 100 million Customer Rep number (Applicable  only for Customer Portal)
+            
+            **Note: This header parameter is not used by Payments API**
+            
+        - in: header
+          name: Manheim-Customer-UserName
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+          description: |-
+            Please enter a valid CP User Name (Applicable only for Customer Portal)
+            
+            **Note: This header parameter is not used by Payments API**   
+  
+    # Define API's get method here #
+    get:
+    
+    # Define here the type of security being used by the API method, e.g. HTTP basic authentication, OAuth2, API key etc. For most of our APIs we use HTTP basic authentication
+      security:
+        - basicAuth: []
+      
+      # Brief description of this API method   
+      summary: Get Seller Refunds
+      tags:
+        - Endpoints # The first value should always be ‘Endpoints’ for every defined method. You can define additional tags and description if there is a need to enter additional information about API
+        
+      # Enter the operation id, e.g. getReceipts, postReceipts etc.
+      operationId: getPayments
+      
+      # Enter both internal and external  complete endpoints for the API #
+      description: |
+        | Environment    | Endpoint  | Type |      
+        | ------- | ------------------------| ------ |
+        | DEV     | https://tmnh7o.manheim.com/payments2 | Internal |
+        | DEV     | https://tmnh7opub.oracleoutsourcing.com/payments2 | External |
+        | SILO5   | https://smnh5o.manheim.com/payments2 | Internal |
+        | SILO5   | https://smnh5opub.oracleoutsourcing.com/payments2 | External |
+        | PREPROD | https://smnh2o.manheim.com/payments2 | Internal |
+        | PREPROD | https://smnh2opub.oracleoutsourcing.com/payments2 | External |
+        | PROD    | https://ebizservices.manheim.com/payments2 | Internal |
+        | PROD    | https://ebizservicespub.oracleoutsourcing.com/payments2 | External |        
+   
+      # Define local parametrs for the current method of the API, in this case get method # 
+      parameters:     
+        - in: query  # Most of our APIs use query type parameters
+          name: customerNumber
+          required: true
+          schema:
+            type: string
+            example: "5004945"
+          description: >-
+            Specifies the customer whose payments should be returned.  Valid values are-
+            - Auction Access 5 million   
+            - 4.9 million (Commercial)
+            - 7 million (Retail/Employee)  
+            - 12 million (Floorplan Agency)  
+            - 13 Million (Consignor Netting) 
+            - Mega Dealer              - RMS Customer Number
+            - RMS Customer Number
+            API returns payments for the passed customerNumber if the combination of paymentSource and paymentID is not passed.  If paymentSource & ID combination is passed then payment details will be derived for the passed payment source and ID & customerNumber value  is used to derive total receipt, credit, & debit amounts, payment amount, receipts, credits, & debits array details.
+            
+        - in: query
+          name: paymentSource
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+            # Define the list of static values i.e. enumerators for this field
+            enum:
+              - PAYMENT
+              - INVOICE
+              - NETTING
+              - CREDIT
+          description: >-
+            Please select a valid Payment source. paymendtID must be passed if the paymentSource is passed. Allowed values are:
+              - PAYMENT: This payment source is for refund request for which the seller payment is made either by ACH, Next Day Check, or On Demand Check
+              - INVOICE: This payment source is for refund request for which Payable payment request invoice is created and is not yet paid
+              - NETTING: This payment source is for refund request that resulted in auto-netting 
+              - CREDIT: This payment source is for Receivables credit memo fully or partially applied to the debit invoices and there is no refund against the credit memo
+
+        - in: query
+          name: paymentID
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+          description: |-
+            API returns only the payments for the specified Oracle payment/netting header id. paymentSource must be passed if the paymentID is passed. 
+            This parameter is mandatory when paymentSource is passed. The combination of payment source and payment id must be valid. Following are the valid ids that can be passed in this parameter, based on the value of the source:
+              
+              
+              - For payment source of PAYMENT, it will contain ap_checks_all.check_id.
+              - For payment source of INVOICE, it will contain ap_invoice_all.invoice_id.
+              
+              - For payment source of NETTING, it will contain man_ar_netting_headers_tbl.netting_header_id 
+              
+              - For payment source of CREDIT, it will contain ra_customer_trx_all.customer_trx_id
+            If the value in this parameter is passed together with the paymentSource, then API will not validate the link between customerNumber and paymentSource & ID, and will derive Oracle payment information for the passed paymentSource & ID.  API will use customerNumber value for deriving total receipt, credit & debit amounts, payment amount, receipts, credits & debits array details. If none of the applied credit & debit transactions have sold-to customer number same as the passed input customerNumber then API will return error message with 404 error code. API will ignore all other input parameters (except customer number and output expansions) when paymentSource & ID are passed for deriving payment details.
+                       
+        - in: query
+          name: startDate
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string  # Define date parameter as string, otherwise Swagger editor may throw error
+            format: date			
+          description: |-
+            *Format: YYYY-MM-DD* 
+            
+            
+            Only return payment transactions from the specified date. If no value is provided then transactions will be returned irrespective of the date.
+        - in: query
+          name: endDate
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string  # Define date parameter as string, otherwise Swagger editor may throw error
+            format: date			
+          description: |-
+            *Format: YYYY-MM-DD* 
+            
+            
+            Only return payment transactions up to specified date. If no value is provided then transactions will be returned irrespective of the date.
+ 
+        - in: query
+          name: outputExpansions
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+            enum:
+              - APPLICATIONS
+          description: |-
+            List of comma separated values that control which data objects are returned in the output JSON.  Currently, Payments API supports only one output expansion: **APPLICATIONS**
+            Payments API will return payment application details only  if this output expansion is passed.  The output expansion is optional and must be requested in order to receive the data object. Payments header array data will always be returned.
+      
+      # Define the model structure when API returns the success response for get method #    
+      responses:
+        '200':
+          description: This table describes the JSON for a successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  truncation:
+                    $ref: '#/components/schemas/truncation'
+                  paymentRequests:
+                    $ref: '#/components/schemas/paymentRequests'
+        
+        # Define error responses to be returned by the get method #
+        '400':
+          description: |-
+            - Application did not provide requiredhttpS header fields
+            - RepNumber required in httpS header for user role provided
+            - Passed output expansion *outputexpansion* is not allowed for the application user *applicationusername*
+            - Invalid date value
+            - Invalid boolean value 'xxx'
+            - Payment source is invalid
+        '401':
+          description: '- Authentication Required (invalid application user name or password).'
+        '404':
+          description: |-
+            - customerNumber not found 
+            - paymentID not found 
+            - The combination of payment source and payment id is incorrect for the passed customer
+            - Payment source is passed but passed payment id is blank
+            - Payment id is passed but passed payment source is blank
+            - Passed Payment id is not within the passed from/to date range
+            - No applied transactions found for the passed customerNumber and paymentSource&ID
+        '500':
+          description: '- The calling system can retry the calling the Payments API for server errors.  The  recommendation is to retry every 15 minutes for up to 8 hours before timing out.'
+    # Define API's post method here #
+    post:
+    # Define here the type of security being used by the API method, e.g. HTTP basic authentication, OAuth2, API key etc. For most of our APIs we use HTTP basic authentication
+      security:
+        - basicAuth: []
+      
+      # Brief description of this API method
+      summary: Post Payments Request
+      tags:
+        - Endpoints #The first value should always be ‘Endpoints’ for every defined method. You can define additional tags and description if there is a need to enter additional information about API
+      
+      # Enter the operation id, e.g. getReceipts, postReceipts etc.
+      operationId: postPayments
+      
+      # Enter both internal and external  complete endpoints for the API #
+      description: |-
+        | Environment    | Endpoint  | Type |      
+        | ------- | ------------------------| ------ |
+        | DEV     | https://tmnh7o.manheim.com/payments2 | Internal |
+        | DEV     | https://tmnh7opub.oracleoutsourcing.com/payments2 | External |
+        | SILO5   | https://smnh5o.manheim.com/payments2 | Internal |
+        | SILO5   | https://smnh5opub.oracleoutsourcing.com/payments2 | External |
+        | PREPROD | https://smnh2o.manheim.com/payments2 | Internal |
+        | PREPROD | https://smnh2opub.oracleoutsourcing.com/payments2 | External |
+        | PROD    | https://ebizservices.manheim.com/payments2 | Internal |
+        | PROD    | https://ebizservicespub.oracleoutsourcing.com/payments2 | External |         
+
+  
+      # Define POST Method Request body data elements here # 
+      requestBody:
+        description: This is POST methods request payload body
+        required: true		
+        content:
+          application/json:
+            schema:
+              
+              # API post method accepts an object containing the below data elements #
+              type: object
+              properties:
+                customerNumber:
+                  type: string
+                  description: >-
+                    Specifies the customer whose payments should be refunded.  Valid values are-
+                    - Auction Access 5 million   
+                    - 4.9 million (Commercial)
+                    - 7 million (Retail/Employee)  
+                    - 12 million (Floorplan Agency)  
+                    - 13 Million (Consignor Netting) 
+                    - Mega Dealer
+                    - RMS Customer Number         
+                    
+                recipientName:
+                  type: string
+                  description: This is recipient / requestor name
+                
+                coxLocationCode:
+                  type: string
+                  description: 'This is Cox location code that will be passed by the calling application for receipt refunds. Payments API will pass the location name for this code to the standard refunds API in REMITTANCE_MESSAGE1 field for ACH payment. Payments API will validate that this Cox location code value exists in Oracle and is an active Cox location. This is a required field for on-account receipt refunds. Also, the Cox location code will be passed by the calling application for the on-account credit refunds.  Payments API will validate that this Cox location code value exists in Oracle and is an active Cox location. This will be a required field for on-account credit refunds where payment type is on-demand check.'
+                
+                customDescription:
+                  type: string
+                  maxLength: 150
+                  description: |-
+                    Allowed characters are:
+                    - Non Alpha=  ][~`!@#$%&*_=+{}\|;:''",<.>/?)(-
+                    - Alpha= abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+                    - Numbers = 1234567890
+                    - Space= ' '
+                    Payments API will pass this value to the refund API in REMITTANCE_MESSAGE2 field. This is a required field for all on-account receipt refunds.
+                
+                paymentType:
+                  type: string
+                  description: |-
+                    API validates that the passed payment type is same as the customers’ refund payment  preference in Oracle EBS. If it is different then API rejects the entire payment request. API processes each payment type differently as follows-
+                    - CHECK_ON_DEMAND- Process payment request either to create on-demand seller check and/or perform auto netting
+                    - NEXT_DAY_CHECK- Process payment request to either create an AP invoice with ‘Next Day Check’ payment method and/or perform netting with the eligible debit items
+                    - ACH- Process payment request to either create an AP invoice with electronic payment method and/or perform netting with the eligible debit items
+                  enum:
+                    - CHECK_ON_DEMAND
+                    - NEXT_DAY_CHECK
+                    - ACH
+                
+                paymentAmount:
+                  type: number
+                  description: This is the sum of all amounts that will be refunded or netted. Calling application must pass total payment amount in this data attribute. Passed paymentAmount value should be equal to the sum of applicationAmount for all credit memos/sales orders/receipts passed in credits array. If these amount values are not same then the entire payment call will be rejected.
+                
+                printerName:
+                  type: string
+                  maxLength: 30
+                  description: 'This is the check printer name to which on-demand check will be printed. This is a non-mandatory data attribute. If the calling application passes the printer name then Payments API will validate that the passed printer is defined in Oracle and will use the printer for Check on-demand printing. If the calling application does not pass the printer name then Payments API will derive the default printer associated with the employee’s HR location, using salesperson setup. Payments API will validate that the printer name  is always passed by the calling application for payment type  of check on-demand. You can get valid check printer names by calling printers API.'
+                
+									  
+							   
+																																																																					 
+                
+                # Within the main object, the post method accepts an array called credits #
+                credits:
+                  type: array
+                  description: 'This array contains Credit Memos and/or Sales Orders  or On-account Receipts for which payment is requested It can contain a combination of Credit Memos and Sales Orders or just Receipts, i.e. receipts cannot be combined with either credit memos or sales orders.                    '
+                  
+                  # Within credits array, payload accepts an object containing application data# 
+                  items:
+                    type: object
+                    properties:
+                      invoiceSource:
+                        type: string
+                        enum:
+                          - INVOICE
+                          - ORDER
+                          - RECEIPT
+                        description: |-
+                          Calling application must pass one of the following values:
+                            - 'INVOICE': Calling application will pass this value if the payment is being issued against an AR on-account credit memo.
+                            
+                            - 'ORDER': Calling application will pass this value if the payment is being issued against a  sales order.
+                            
+                            - 'RECEIPT': Calling application will pass this value if the payment is being issued against an AR on-account/unapplied receipt. 
+                      
+                      invoiceID:
+                        type: integer
+                        description: This data attribute contains Oracle transaction identifier. If the invoiceSource value is INVOICE then this field should have value of AR credit memo id and the credit memo should have open balance. If the invoiceSource value is ORDER then this field should have value of SO header id and the sales order header should be in booked status. If the invoiceSource value is RECEIPT then this field should have value of AR receipt id and the receipt should have on-account and/or unapplied balance.
+                      
+                      applicationAmount:
+                        type: number
+                        description: 'Calling application must explicitly pass applicationAmount value that needs to be refunded/netted for each sales order and/or credit memo or receipt passed in this array. Payments API will validate that this amount is equal to the sales order or credit memo or receipt (based on invoiceSource) open amount in Oracle. If the passed amount is not equal to the transaction open amount then API will reject the entire payment request. For receipts, open amount in Oracle is considered as the sum of unapplied and on-account receipt amount, excluding sales order on-account application.'
+                  
+                    # In the credits arrary of POST method request payload, below are the required data elements #
+                    required:
+                      - invoiceSource
+                      - invoiceID
+                      - applicationAmount
+              
+              # In the POST method request payload at header level object, below are the required data elements #
+              required:
+                - customerNumber      
+                - recipientName
+                - paymentType
+                - paymentAmount
+                              
+      # Define POST Method Responses Here #                              
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nettingRequestID:
+                    type: integer
+                    description: Netting request identifier (from Netting Headers table) for the processed payment
+                  paymentID:
+                    type: integer
+                    description: Netting header identifier (from Netting Headers table) for the processed payment
+                  success:
+                    type: boolean
+                    description: Indicates if the payment request was successful or not
+                  errorMessage:
+                    type: string
+                    maxLength: 100
+                    description: Returns back null for success or the error message for failure
+        '400':
+          description: |-
+            - Application did not provide requiredhttpS header fields
+            - string value 'xxx' is not a valid enumeration value for payment type
+            - invoiceID value ### is not a valid value for credit memo/sales order/receipt  identifier
+            - customerNumber not found
+            - No Data found for the inputs provided
+            - Passed application amount in credits array is not equal to the transaction open amount for id <<invoiceID>>
+            - Sum of application amounts in credits array does not match with the total payment amount
+            - Passed Invoice source <invoiceSource> is invalid. Allowed values are INVOICE, ORDER, and RECEIPT
+            - Passed Sales Order <salesorder> is not in booked status
+            - One or more lines of the Sale Order <salesorder> are already fulfilled
+            - Payment request contains sales order <salesorder#> that has one or more holds
+            - Payment request contains credit memo <credits#> that has one or more holds
+            - Order type of the passed Sales Order <salesorder> is not ‘US SELLER’
+            - Passed Sales Order <salesorder> is not a sellercredit 
+            - Sales Order acceleration could not happen for <salesorder> 
+            - Passed printer name is not defined in Oracle
+            - Cannot process payment request because Sales Order <salesoreder> will be split into more than one AR transaction 
+            - Passed Sales Order violates Oracle grouping rule
+            - Sale price of the vehicle line is greater than the allowed percentage of MMR price
+            - Sale price of the vehicle line  is greater than the allowed maximum price
+            - Sales Channel code of the sales order is not allowed for sales finalization
+            - Passed location <locationcode> is  end dated or inactive or  not defined in Oracle
+            - Payment request can not contain receipts combined with other invoice sources
+            - Customer class of <customernumber> is not eligible for receipt refunds
+            - Payment request contains receipt <receiptid> with a receipt method that is not eligible for refund
+            - Passed payment type <paymentType> is different from the payment preference setup in Oracle TCA
+            - Printer name is mandatory for the Check On-Demand payment request
+            - Recipient name is mandatory for receipt refund
+            - Cox location code is mandatory for receipt refund
+            - Custom description is mandatory for receipt refund
+            - Custom description contains non-allowed characters
+            - Receipt <receiptid> is ineligible for refund due to credit risk classification rules
+            - Customer <customer#> is ineligible for overpayment refund because customer is on credit hold - ACH Credit Bank Account could not be derived for the Customer <customer_number>
+            - Derived Customer bank account is not approved for ACH credit transactions
+            - Passed transaction <salesorderid/creditmemoid/receiptid> is not valid for the passed customer <customer#>
+        '401':
+          description: |-
+            - Authorization Required (invalid application user name)
+            - Passed user is not authorized for issuing refunds
+        '500':
+          description: '- The calling system can retry the calling the Payments API for server errors.  The  recommendation is to retry every 15 minutes for up to 8 hours before timing out.'
+
+# Define common data elements in the below section that are referenced in this document as $ref data elements #
+components:
+  schemas:
+    # Define paymentRequests array #
+    paymentRequests:
+      type: array
+      description: This array contains seller payment header level information
+      
+      # paymentRequests array contains object of the following data elements #
+      items:
+        type: object        
+        properties:
+          customerNumber:
+            type: string
+            maxLength: 60
+            description: |-
+              API will return the same customer number value as passed in the input parameter. This customer could be different from a payment customer, when paymentSource & id are passed. 
+              If a value is populated in payeeCustomerNumber  field then this field value represents the subsidiary customer whose payments were paid to a payeeCustomerNumber customer.
+          customerName:
+            type: string
+            maxLength: 360
+            description: API will return the customer name of the customerNumber passed as the input parameter.
+          
+          payeeCustomerNumber:
+            type: string
+            maxLength: 60
+            description: If the passed input customer number is the Bill-to customer of the credit memo(s) for which refund is made then API response will not include this data attribute/tag since its value will be blank (Null). If they are different then return Bill-to customer number of the refunded credit memo(s) If this data field is NOT null then the payment is done to the payeeCustomerNumber on behalf of customerNumber
+          
+          payeeCustomerName:
+            type: string
+            maxLength: 360
+            description: 'API will return the customer name of the payeeCustomerNumber, whenever applicable.'
+          
+          bankName:
+            type: string
+            maxLength: 100
+            description: API will return the customer bank account name (applicable for payment method ACH). If the passed input customer number is different then return Bill-to customer of the credit memo(s) for which refund is made then API response will not include this data attribute/tag.
+          
+          bankAccountNumber:
+            type: string
+            maxLength: 30
+            description: API will return the customer bank account number (applicable for payment method ACH). The returned value should be masked only to display the last four digits. If the passed input customer number is different then return Bill-to customer of the credit memo(s) for which refund is made then API response will not include this data attribute/tag.
+          
+          paymentSource:
+            type: string
+            maxLength: 15
+            description: |-
+              API will return one of the following possible values for the payment source:
+              - PAYMENT
+              - INVOICE
+              - NETTING
+              - CREDIT
+              Payments API will search for the payment transactions in the below sequence (for the passed input parameters) and will return appropriate value:
+              1.  If the payment document has been issued in Payables then this field will have value of PAYMENT.
+              2.  If the payment document is NOT issued in Oracle and the transaction exists in custom netting table then this field will have value of NETTING. This is the case when a credit transaction has been netted and/or refunded (includes both credit memo & on-account receipt refunds from Payments API).
+              3.  If the payment document is NOT issued but AP refund invoice is created and the payment transaction does NOT exist in custom netting table then this field will have value of INVOICE. This is the case when refund was created directly in Oracle or through consignor netting. 
+              4.  If a credit memo is fully or partially applied to one or more debit items (AR invoices), has no refund activity against it, and has not resulted due to batch netting this field will have value of CREDIT.
+          
+          paymentID:
+            type: integer
+            description: |-
+              Oracle EBS payment identifier, based on the payment source field value.
+              - For payment source of PAYMENT, it will contain ap_checks_all.check_id
+              - For payment source of INVOICE, it will contain ap_invoice_all.invoice_id
+              - For payment source of NETTING, it will contain man_ar_netting_headers_tbl.netting_header_id
+              - For payment source of CREDIT, it will contain ra_customer_trx_all.customer_trx_id
+          
+          paymentNumber:
+            type: string
+            maxLength: 30
+            description: |-
+              This is the payment number corresponding to the paymentID and paymentSource.
+              Payment document number for seller check and ACH payment types. Invoice number for unpaid invoices, and netting request identifier for custom netting transactions.
+          
+          paymentDate:
+            type: string
+            maxLength: 30
+            description: |-
+              Date refund was created in Oracle in UTC format- YYYY-MM-DDTHH:MM:S-UTC.
+                          
+              - For payment source of PAYMENT, it will contain ap_checks_all.check_date
+              - For payment source of INVOICE, it will contain ap_invoice_all.invoice_date
+              - For payment source of NETTING, it will contain man_ar_netting_headers_tbl.creation_date
+              - For payment source of CREDIT, it will contain  application date of the debit item that was applied most recently
+          
+          requestorName:
+            type: string
+            maxLength: 100
+            description: Requestor Name passed by the calling application in POST method call when requesting for a refund
+          
+          paymentCreationDate:
+            type: string
+            maxLength: 30
+            description: 'Creation date of the payment transaction in UTC format- YYYY-MM-DDTHH:MM:S-UTC.          '
+          
+          paymentCurrency:
+            type: string
+            maxLength: 15
+            description: Currency code for the payment. Valid values are USD and CAD.
+          
+          paymentMethod:
+            type: string
+            maxLength: 30
+            description: |-
+              Possible values returned for the payment method are:
+              - ACH: applicable for payment source of INVOICE, PAYMENT, and NETTING
+              - CHECK: applicable for payment source of INVOICE, PAYMENT, and NETTING
+              - NETTED: applicable only when payment source is NETTING
+              - APPLIED: applicable only when payment source is CREDIT
+              ACH and CHECK are the methods applicable for refunds. If debit/credit (credit memo or receipt) transactions are netted against each other, no refund had happened, and this netting has happened as a result of batch netting, then payment method is NETTED.
+          
+          totalReceiptAmount:
+            type: number
+            description: |-
+              Total sum of all applied amounts (refund and/or netted) of the receipt. This amount will be returned as a positive amount.
+              This is sum of all amounts in receipts array.
+              It will be populated for all refunds that resulted from an AR receipt, for e.g. manual on-account receipt refund, consignor netting refunds, on-account receipt refunds (overpayment) & receipt netting. It will have null value for non-receipt refunds.
+          
+          totalCreditAmount:
+            type: number
+            description: |-
+              Total sum of all applied credit amounts.  This amount will be returned as a positive amount.
+              This is sum of all amounts in credits array.It will have null value for receipt refunds.
+              If the passed input customerNumber is the same as the Bill-to customer of the credit memo(s) for which refund is made then this field is the total sum of all applied/refunded credit amounts. If they are different then this field is the total sum of all applied/refunded credit amounts that have input customerNumber as Sold-to customer on the credit memo(s)
+          
+          totalDebitAmount:
+            type: number
+            description: |-
+              Total sum of all applied debit amounts. This amount will be returned as a positive amount.
+              This is sum of all amounts in debits array. 
+              This is applicable only when a credit memo is manually applied to debit transactions or credit transactions (credit memos or on-account receipts) are netted against the debit transactions by batch netting program (scheduled concurrent program or kicked off from Payments API). This netting may or may not result in a payment (refund).
+              Also, for manual on-account receipt refund and consignor netting refunds, it will have null value.
+              If the passed input customerNumber is the Bill-to customer of the netted/applied debit invoice(s) then this field is the total sum of all netted/applied debit amounts - applicable for both CM and Receipt refund/netting
+              If they are different then this field is the total sum of all netted/applied debit amounts that have input customerNumber as Sold-to customer on the debit memo(s) - applicable only for CM refund/netting
+          
+          paymentAmount:
+            type: number
+            description: |-
+              Total payment amount.  When an AR credit memo is fully or partially applied to one or more AR invoices and has no refund activity against it then the payment source will be CREDIT and value in this field will be 0. For source of NETTING, PAYMENT, and INVOICE, payment amount = totalCreditAmount – totalDebitAmount.  For CREDIT source it will be $0.
+              **Note/Assumption:** paymentAmount will be different from the Oracle payment document amount in case when Bill-to and Sold-to are different for either one or more credit and/or debit items. This is applicable only for CM refund and/or netting. For source of NETTING, if the result is Autonetting, then the payment amount will be 0.  If there is a refund activity, then the payment amount = totalCreditAmount – totalDebitAmount.  For passed Bill-to customer totalCreditAmount-totalDebitAmount will be equal to the refund receipt amount from netting headers.  For passed Sold-to customer totalCreditAmount-totalDebitAmount is only for credit/debit transactions with passed Sold to. For source of INVOICE where payment is not done, if passed customer is Bill-to, paymentAmount should be the (-)ve invoice amount and equal to the (-)ve of totalCreditAmount-totalDebitAmount.  For passed Sold-to customer, paymentAmount is totalCreditAmount - totalDebitAmount, where credits/debits only for passed Sold to.
+          
+          paymentStatus:
+            type: string
+            maxLength: 30
+            description: |-
+              For paymentSource of PAYMENT, value of this data attribute will be ‘PAID’.
+              For paymentSource of INVOICE- if the AP invoice is not cancelled then the value of this data attribute will be ‘IN PROGRESS’.
+              For paymentSource of NETTING- if the netting did not result in refund then the value of this data attribute will be ‘PAID’, else it will be ‘IN PROGRESS’. 
+              For paymentSource of CREDIT, value of this data attribute will be ‘APPLIED’.
+          
+          paymentStatusDescription:
+            type: string
+            description: |-
+              This value will be for the paymentID and paymentSource derived earlier.
+              For payment (refund) transactions, derive value of this attribute using Oracle EBS lookup type ‘MAN_AP_PAYMENT_INVOICE_STATUS’ for ACH payments and lookup code ‘MAN_AP_PAYMENT_INV_STAT_CHECK’ for Check payments. For auto netting transactions this value will be ‘Auto Netting’. For credit memos fully or partially applied to debit invoice(s), this value will be 'Manually Applied'.
+            maxLength: 30
+          
+          printerName:
+            type: string
+            description: This is the check printer name to which on-demand check was printed.
+            maxLength: 30
+          
+          coxLocationName:
+            type: string
+            description: 'This is the Cox location name, aka auction location name, and will be retuned only if the Cox location code was provided by the calling application during payment request POST call. This is an auction location from which the paymemnt is made to a dealer and only applicable for ACH and Next Day Check.'
+            maxLength: 240
+          
+          coxLocationCode:
+            type: string
+            description: 'This is the Cox location code, aka auction code, and will be retuned only if the location code was provided by the calling application during payment request POST call. This is an auction location code from which the payment is made to a dealer and only applicable for ACH and Next Day Check.'
+            maxLength: 25
+          
+          customDescription:
+            type: string
+            description: This is the custom description and will be retuned only if a value was provided by the calling application during payment request POST call.
+            maxLength: 150
+          
+          errorMessage:
+            type: string
+            description: This is the concatenated error message from custom batch netting table for the header record that is flagged as error. This error will be returned when a check on-demand payment request had failed either during acceleration of sales order or during refund process. This is applicable only when the GET method is called with payment source of NETTING and its source id. It will be blank if there were no errors were encountered during batch netting process.
+            maxLength: 240
+          
+          # paymentRequests array references applications array #
+          applications:
+            $ref: '#/components/schemas/applications'
+
+    # Define applications object with the following data elements#
+    applications:
+      type: object
+      description: 'This object contains credit, debit, and receipt applications that made up this payment/netting.'
+      # applications object references credits, debits, and receipts arrays #
+      properties:
+        credits:
+          $ref: '#/components/schemas/credits'
+        debits:
+          $ref: '#/components/schemas/debits'
+        receipts:
+          $ref: '#/components/schemas/receipts'
+    
+    # Define credits array with the following data elements#
+    credits:
+      type: array
+      description: Array of objects containing credit side details of the payment requests
+      items:
+        properties:
+          consignmentID:
+            type: integer
+            description: Consignment identifier
+          vin:
+            type: string
+            description: Vehicle Identifier Number
+            maxLength: 30
+          year:
+            type: string
+            description: Vehicle year
+            maxLength: 30
+          make:
+            type: string
+            description: Vehicle make
+            maxLength: 30
+          model:
+            type: string
+            description: Vehicle model
+            maxLength: 30
+          trim:
+            type: string
+            description: Vehicle trim
+            maxLength: 30
+          invoiceID:
+            type: integer
+            description: AR credit memo id that was netted (batch program or manual)  or refunded
+          invoiceNumber:
+            type: string
+            description: AR credit memo number that was netted (batch program or manual)  or refunded
+            maxLength: 100
+          invoiceDate:
+            type: string
+            description: 'Credit memo date in Oracle in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          invoiceCreationDate:
+            type: string
+            description: 'Credit memo creation date in Oracle in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          amount:
+            type: number
+            description: 'It is the amount of credit memo that was netted (batch program or manual)/refunded. For credit memo that is applied manually (not as a result of batch netting process) this amount will be the credit memo applied amount.This amount will be negative amount, as it is credit amount.'
+          partialPayment:
+            type: boolean
+            description: If credit item balance is not zero then populate true else false
+          currency:
+            type: string
+            description: Currency code. Valid values are USD and CAD
+            maxLength: 15
+          transactionLocationName:
+            type: string
+            description: Salesperson name captured on the credit memo
+            maxLength: 240
+          transactionLocationCode:
+            type: string
+            description: Salesperson code captures on the credit memo
+            maxLength: 240
+          saleDate:
+            type: string
+            description: 'Sale date in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          universalKey:
+            type: string
+            description: 'Concatenated value of (Sale Year + Sale Num + Lane Num + Run Num), separated by - character, eg: 2017-50-1-82'
+            maxLength: 30
+    
+    # Define debits array with the following data elements#
+    debits:
+      type: array
+      description: Array of objects containing debit side details of the payment requests
+      items:
+        properties:
+          consignmentID:
+            type: integer
+            description: Consignment identifier
+          vin:
+            type: string
+            description: Vehicle Identifier Number
+            maxLength: 30
+          year:
+            type: string
+            description: Vehicle year
+            maxLength: 30
+          make:
+            type: string
+            description: Vehicle make
+            maxLength: 30
+          model:
+            type: string
+            description: Vehicle model
+            maxLength: 30
+          trim:
+            type: string
+            description: Vehicle trim
+            maxLength: 30
+          invoiceID:
+            type: integer
+            description: AR credit memo id that was netted (batch program or manual)  or refunded
+          invoiceNumber:
+            type: string
+            description: AR credit memo number that was netted (batch program or manual)  or refunded
+            maxLength: 100
+          invoiceDate:
+            type: string
+            description: 'Credit memo date in Oracle in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          invoiceCreationDate:
+            type: string
+            description: 'Credit memo creation date in Oracle in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          amount:
+            type: number
+            description: Derive the amount that was netted for the debit item. It could be different (less) from the transaction amount. This will be positive amount.
+          partialPayment:
+            type: boolean
+            description: If debit item balance is not zero then populate true else false
+          currency:
+            type: string
+            description: Currency code. Valid values are USD and CAD
+            maxLength: 15
+          transactionLocationName:
+            type: string
+            description: Salesperson name captured on the debit memo
+            maxLength: 240
+          transactionLocationCode:
+            type: string
+            description: Salesperson code captures on the debit memo
+            maxLength: 240
+          saleDate:
+            type: string
+            description: 'Sale date in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          universalKey:
+            type: string
+            description: 'Concatenated value of (Sale Year + Sale Num + Lane Num + Run Num), separated by - character, eg: 2017-50-1-82'
+            maxLength: 30
+    
+    # Define receipts array with the following data elements#
+    receipts:
+      type: array
+      description: Array containing receipt details of the payment requests
+      items:
+        properties:
+          receiptID:
+            type: integer
+            description: AR receipt id that was netted and/or refunded
+          receiptNumber:
+            type: string
+            description: AR receipt number that was netted and/or refunded
+            maxLength: 30
+          receiptDate:
+            type: string
+            description: 'Receipt date in Oracle in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          receiptCreationDate:
+            type: string
+            description: 'Receipt creation date in Oracle in UTC format- YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          amount:
+            type: number
+            description: 'It is the portion of the total receipt amount that was netted and/or refunded for this payment. This amount will be negative amount, as it is credit (receipt) amount.'
+          currency:
+            type: string
+            description: Currency code. Valid values are USD and CAD
+            maxLength: 15
+    
+    # Define truncation object with the following data elements#
+    truncation:
+      type: object
+      properties:
+        truncated:
+          type: boolean
+        itemCount:
+          type: number
+          
+  # This is the type of security being used by the API as whole, e.g. HTTP basic authentication, OAuth2, API key etc. For most of our APIs we use HTTP basic authentication #
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic

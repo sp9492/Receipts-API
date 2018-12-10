@@ -1,0 +1,1476 @@
+# Every OpenAPI specification starts with the openapi keyword mentioning the version of the specification format. 
+# The version we use to document OASIS APIs is 3.0.1
+openapi: 3.0.1
+
+# The servers section specifies the API server and base URL. You can define one or several servers, 
+# such as DEV, SILO5, Pre-Prod, and production. The url field specifies the Server name of the host.
+# Specify both internal and external host names here
+servers:
+  - url: 'https://tmnh7o.manheim.com'
+    description: DEV Internal End Point
+  - url: 'https://tmnh7opub.oracleoutsourcing.com'
+    description: DEV External End Point
+  - url: 'https://smnh5o.manheim.com'
+    description: SILO5 Internal End Point
+  - url: 'https://smnh5opub.oracleoutsourcing.com'
+    description: SILO5 External End Point
+  - url: 'https://smnh2o.manheim.com'
+    description: Pre-Prod Internal End Point
+  - url: 'https://smnh2opub.oracleoutsourcing.com'
+    description: Pre-Prod External End Point
+  - url: 'https://ebizservices.manheim.com'
+    description: Production Internal End Point
+  - url: 'https://ebizservicespub.oracleoutsourcing.com'
+    description: Production External End Point
+
+# The info section contains information about the API, e.g. title, description (optional), version, contact for the API etc.    
+info:
+  # Define version of the API this document is for #
+  version: '2.5'
+  
+  # Define title of the API #  
+  title: RECEIPTS API
+  
+  # Define support contact personal and his/her details, for the API #  
+  contact:
+    name: OASIS Support
+    email: sunil.pandey@coxautoinc.com
+    url: 'http://www.coxautoinc.com'
+  license:
+    name: Cox Automotive
+    url: 'http://www.coxautoinc.com'
+
+# The description field contains details about the API, like:
+#   - Release Notes
+#   - Purpose of the API
+#   - Architecture
+#   - Versioning
+#   - Application Authentication
+#   - End User Authorization for each consumer application
+
+  description: >-
+    # Release Notes: Version 2.5
+
+    Below mentioned  fields are added in the applications array of GET method
+    response to support feature-F20127. These new fields will utilized by CPCSA
+    to print the gate pass and/or use them for determining if the gate pass can
+    be released. These changes resulted in the new version of the API, from 2.4
+    to 2.5. 
+
+    No changes are made to the POST method in 2.5 version of the API. 
+
+      - facilitatingLocationCode
+      - facilitatingLocationName
+      - soldToCustomerNumber
+      - soldToCustomerName
+
+    Feature-F20127 also has the requirement to return the universalKey, which
+    was already added in version 2.4 of the Receipts API.
+
+    #  Purpose
+
+    This document addresses the requirements of Cox Automotive to provide an
+    application programming interface (API) that  processes and returns payments
+    (refunds) to sellers (customers) information from the Cox Automotive
+    Wholesale Billing and Payments  system that is built on Oracle’s E-Business
+    Suite. Receipts API (this API) is created to cater the need of rendering the
+    seller refunds, credit applications, and netting details to the calling
+    applications  and creating the seller refunds and/or auto netting credits
+    with debit items in Oracle EBS.
+    
+    #  Definitions
+       ### Oracle E-Business Suite (EBS)
+       Oracle's E-Business Suite consists of a collection of enterprise resource planning applications.  The Wholesale Billing and Payments system leverages the EBS Trading Community, Order Management and Receivables applications to deliver a billing and payment system for the Cox Automotive wholesale businesses.
+      ### Oracle Service Bus (OSB) 
+      Oracle Service Bus is a configuration-based, policy-driven service bus designed for SOA life cycle management.  It provides message brokering with routing and transformation of messages, along with service monitoring and administration.
+      ### JavaScript Object Notation (JSON)
+      JSON is an open-standard format that uses human-readable text to transmit data Objects consisting of attribute–value pairs. It is the most common data format used for asynchronous browser/server communication
+      ### Consignment
+      A custom data Object that was created for the Wholesale Billing and Payments system that contains information about vehicle sales.  All buyer and seller invoices are linked to a consignment.
+      
+      ### Manheim Customer Portal and Customer Service App (CP/CSA) 
+      Web applications that are used by customers and employees to view invoices and make payments.
+      
+      ### RMS: Remarketing Management System
+      A division of Cox Automotive that provides remarketing services for commercial consignors.  RMS provides white label branded websites in which consignors can market and sell “upstream” off-lease and company owned vehicles.
+
+
+      
+    #  Architecture
+      In order to present/render transactions, Payments API accepts input parameters (request payload) from the calling application through a composite service built on OSB in JSON format. The output (response payload) is returned in JSON format to the calling application. This action is performed by GET method of the API.
+
+      Similarly, in order to process/create transactions, Receipts API accepts input parameters (request payload) from the calling application through a composite service built on OSB in JSON format. Then the  API creates/updates transactions in Oracle EBS tables and returns back the status (response payload) is JSON format to the calling application. 
+    # Versioning
+      Calling application passes Version as a field in the HTTPS header for both GET and POST methods.  API uses the version number to control what version of the JSON output needs to be returned for GET method and what version of API to be used for POST method.
+    # Application Authentication
+      Each calling application requires an Oracle Weblogic username and password to access the API. Value in the following httpS header fields need to be passed by the calling application-
+      
+      - Application-UserName
+      - Application-Password
+      
+    Oracle SOA authenticates the application user credentials. If the
+    application user fails the authentication then the Oracle SOA returns 401
+    error message.
+
+    # End User Authorization
+
+      **Manheim Customer Portal (CP)**
+       Receipts API considers the Manheim CP a trusted application and does not require that the customer user has an account in Oracle EBS. The Manheim CP is responsible for authenticating the customer user and providing the following parameters the httpS header-
+      - Manheim-Customer-UserName
+      - Manheim-Customer-Role
+      - Manheim-Customer-RepNumber
+
+
+     
+
+     If the CP sends a Customer Role of 'Order Services Rep' or 'Order Services Pay Rep', the API validates that the ‘RepNumber' parameter is provided in the httpS Header and returns an error if it is not valid.  A corresponding responsibility is created in Oracle EBS for each CP role to control the types of receipts that role can create in Oracle. One common application level user is created in Oracle EBS for both CP and CSA, and user name is identified as CPCSAUSER.  
+     
+
+    **Manheim Customer Service Application (CSA)**
+
+
+    Employee users are required to have an account in Oracle EBS before that can
+    access the CSA.  Each user is assigned a specific CSA responsibility in
+    EBS.  The Manheim CSA only passes the user name for the employee as
+    'Manheim-Employee-ID' in the httpS header when calling the API.   If the
+    employee user does not have an account with CSA responsibility assigned in
+    Oracle EBS, then API returns an error message.  The receipts API restricts
+    the creation of types of receipts based on the responsibilities assigned to
+    the passed employee user. One common application level user is created in
+    Oracle EBS for both CP and CSA, and user name is identified as CPCSAUSER. 
+      
+    **Remarketing Management System (RMS)**
+        
+    A new application level user "rmsuser" is created in Oracle EBS. RMS system
+    does not send end user employee  'Manheim-Employee-ID' in the httpS header
+    when calling the API, it only passes the application user. For POST method
+    call, Oracle EBS checks the application user authorization access for
+    creating the type of receipt (Check, ACH etc.) in Oracle EBS. If the
+    authorization fails then the Oracle EBS API returns an error message. 
+
+    **Profile, Preferences, and Notifications (PPN)**
+
+    A new application level user "manppn" will be created in Oracle EBS for PPN
+    system to use while calling the API. PPN will not send end user employee 
+    'Manheim-Employee-ID' in the httpS header when calling the API, it will only
+    pass the application user. manppn user will not be provided authorization
+    for creating any type of receipts in Oracle EBS, i.e. any POST method call
+    initiated by manppn will be rejected by the Receipts API.
+      
+    Appropriate responsibilities are assigned to each of the above mentioned
+    Application users in Oracle EBS. API uses these responsibilities to control
+    the Output Expansions that an Application is authorized to access, during
+    GET method call. API returns an error message if the passed Application user
+    is not authorized for the requested output expansions.
+
+# This section provides details of additional external documentation information. 
+# Here, we  provide the url link to AN100 document in the sharepoint.
+externalDocs:
+  description: Find out more about Receipts API
+  url: >-
+    http://technology.man.co/Projects/home/G2G/Oracle%20APIs/Receipts%20API%202.4.docx
+  
+# The paths section defines the endpoint (URI) of the API. All paths are relative to the 
+# API host server URL defined in the servers section. The full request URL is 
+# constructed as <server-url>/path, for example the path of receipts API is /receipts2
+# and calling URL is https://ebizservices.manheim.com/receipts2
+#
+# For each path, we define the operations (HTTP methods) that can be used to access that path. 
+# OpenAPI 3.0 supports get, post, put, patch, delete, head, options, and trace. A single path can support multiple operations, 
+# for example, GET /receipts2 to get the receipt details and POST /receipts2 to create a receipt.
+
+# The path (/receipts2) needs to be defined only one time and within that path each operation/method needs to be defined separately, e.g.
+
+# /receipts2:
+# get:
+# …….
+# …….
+# …….
+# post:
+# …….
+# …….
+# …….
+
+    
+paths:
+  /receipts2:
+
+# Define here the parametrs that are common for all the operations. These are the global parameters 
+# All header level parameters are common for both get and post methods of the receipts api  
+    parameters:
+      - in: header
+        name: Version
+        required: true
+        schema:
+          type: string
+          default: '2.5'
+        description: 'Please enter a valid API version, e.g. 2.3, 2.4, 2.5 etc.'
+      - in: header
+        name: Manheim-Employee-ID
+        required: false
+        schema:
+          type: string
+        description: Please enter a valid Oracle EBS User id
+      - in: header
+        name: role
+        required: false
+        schema:
+          type: string
+          # Define the list of static values i.e. enumerators for this field
+          enum:
+            - ECSA_CUSTOMER_CARE
+            - ECSA_AR_SHARED_SERVICES
+            - ECSA_ISSUE_PAYMENT
+            - ECSA_RECEIVE_PAYMENT
+            - ECSA_TEST_ADMIN
+            - ECSA_VIEW
+        description: >-
+          Please enter a valid CSA role, e.g. ECSA_ISSUE_PAYMENT, ECSA_AR_SHARED_SERVICES etc.
+      - in: header
+        name: Manheim-Customer-Role
+        required: false
+        schema:
+          type: string
+          enum:
+            - ORDER_SVCS_AND_PAY_REP
+            - ORDER_SVCS_AND_PAY_COMP
+            - ADMIN
+            - ORDER_SVCS_REP
+        description: Please enter a valid CP Role (Applicable only for Customer Portal)
+      - in: header
+        name: Manheim-Customer-RepNumber
+        required: false
+        schema:
+          type: string
+        description: >-
+          Please enter a valid 100 million Customer Rep number (Applicable only
+          for Customer Portal)
+      - in: header
+        name: Manheim-Customer-UserName
+        required: false
+        schema:
+          type: string
+        description: >-
+          Please enter a valid CP User Name (Applicable only for Customer Portal)
+          
+# Define API's get method here #    
+    get:
+    
+      # Define here the type of security being used, e.g. HTTP basic authentication, OAuth2, API key etc. For most of our APIs we use HTTP basic authentication
+      security:
+        - basicAuth: []
+      
+      # Brief description of this API method        
+      summary: Get Customer Reciepts
+      tags:
+        - Endpoints #This value should always be ‘Endpoints’ for every defined method
+      
+      # Enter the operation id, e.g. getReceipts, postReceipts etc.
+      operationId: getReceipts
+      
+      # Enter both internal and external  complete endpoints for the API #
+      description: |-
+        | Environment    | Endpoint  | Type |
+        | ------- | ------------------------| ------ |
+        | DEV     | https://tmnh7o.manheim.com/receipts2 | Internal |
+        | DEV     | https://tmnh7opub.oracleoutsourcing.com/receipts2 | External |
+        | SILO5   | https://smnh5o.manheim.com/receipts2 | Internal |
+        | SILO5   | https://smnh5opub.oracleoutsourcing.com/receipts2 | External |
+        | PREPROD | https://smnh2o.manheim.com/receipts2 | Internal |
+        | PREPROD | https://smnh2opub.oracleoutsourcing.com/receipts2 | External |
+        | PROD    | https://ebizservices.manheim.com/receipts2 | Internal |
+        | PROD    | https://ebizservicespub.oracleoutsourcing.com/receipts2 | External |     
+      
+      # Define local parametrs for the current method of the API, in this case get method #
+      parameters:
+        - in: query     # All of our APIs use query type parameters
+          name: customerNumber # This is parameter name
+          required: true  # This makes a parameter as required
+          schema:
+            type: string
+          example: "5004945"
+          description: >-
+            Specifies the customer whose receipts should be returned.  Valid values are:   
+              - Auction Access 5 million
+              - 4.9 million (Commercial)
+              - 7 million (Retail/Employee) 
+              - 12 million (Floorplan Agency)
+              - 13 Million (Consignor Netting)
+              - Mega Dealer
+              - RMS Customer Number
+              
+            API derives receipts for the passed customerNumber if receiptID
+            parameter value is not passed. If receiptID value is passed then
+            receipt details are derived for the passed receiptID and
+            customerNumber value are used for deriving receipt amount,
+            overpayment amount, payer customer, and applications array data.
+        - in: query
+          name: receiptID
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: >-
+            Only return the receipt for the specified Oracle receipt id. If the
+            value in this parameter is passed then API does not validate the
+            link between customerNumber & receiptID and derives Oracle receipt
+            information for the passed receiptID. API uses customerNumber value
+            for deriving receipt amount, overpayment amount, payer customer, and
+            applications array data. If none of the applied transactions have
+            sold-to customer number same as the passed input customerNumber then
+            API returns error message with 404 error code. API ignores all other
+            input parameters for deriving receipt details (except customer
+            number, output expansions) when receiptID is passed. 
+        - in: query
+          name: receiptNumber
+          required: false
+          schema:
+            type: string
+          description: >-
+            Only return the receipt for the specified Oracle receipt number and
+            customerNumber. If receiptID is also passed by calling application
+            then the receiptNumber value is ignored.
+        - in: query
+          name: startDate
+          required: false
+          schema:
+            type: string # Define date parameter as string, otherwise Swagger editor may throw error
+            format: date
+          description: |-
+            *Format: YYYY-MM-DD* 
+
+
+            Only return transactions from the specified receipt date. If no
+            value is provided then transactions are returned irrespective of
+            the date.
+        - in: query
+          name: endDate  
+          required: false
+          schema:
+            type: string   # Define date parameter as string, otherwise Swagger editor may throw error
+            format: date
+          description: |-
+            *Format: YYYY-MM-DD* 
+
+
+            Only return transactions up to the specified receipt date. If no
+            value is provided then transactions are returned irrespective of
+            the date.
+        - in: query
+          name: includeUnappliedReceipts
+          required: false
+          schema:
+            type: boolean
+          description: >-
+            If the value for this parameter is passed as “true” only then API
+            returns fully or partially unapplied and on-account receipts data. 
+        - in: query
+          name: includeAppliedReceipts
+          required: false
+          schema:
+            type: boolean
+          description: >-
+            If the value for this parameter is passed as “true” only then API
+            returns fully and partially applied receipts data.   
+        - in: query
+          name: includePendingReceipts
+          allowEmptyValue: true
+          schema:
+            type: boolean
+          description: >-
+            If the value for this parameter is passed as “true” only then API
+            returns Pending receipts data. 
+        - in: query
+          name: includeReversedReceipts
+          required: false
+          schema:
+            type: boolean
+          description: >-
+            If the value for this parameter is passed as “true” only then API
+            returns Reversed receipts data. 
+        - in: query
+          name: outputExpansions
+          required: false
+          schema:
+            type: string
+            
+            # Define enumeration/LOV here
+            enum:
+              - RECEIPT DETAILS
+              - APPLICATIONS
+              - 'APPLICATIONS,RECEIPT DETAILS'
+          description: >-
+            List of comma separated values that control which data objects are
+            returned in the output JSON. Allowed values are- **RECEIPT DETAILS,
+            APPLICATIONS**
+
+            •  Receipts array containing both partially and fully applied
+            receipts header data is always be returned
+
+            •  All expansions are optional and must be requested in order to
+            receive the data object
+
+            •  Output expansions must be passed in uppercase and if more than
+            one output expansions need to be passed then they should be
+            separated by a comma (,) without any space after comma(,)
+      
+      # Define the model / payload structure when API returns the success response for get method #
+      responses:
+        '200':
+          description: This table describes the JSON for a successful response.
+          content:
+            application/json: #This represents that API response payload is in json
+              schema:
+              # The get method of API returns an object containing truncation and receipts data models
+                type: object
+                properties:
+                  truncation:
+                    # Below value indicates that the API returns truncation reference element
+                    # which is defined under components section of this document                  
+                    $ref: '#/components/schemas/truncation'
+                  receipts:
+                    # Below value indicates that the API returns receipts reference element
+                    # which is defined under components section of this document                
+                    $ref: '#/components/schemas/receipts'
+        
+        # Define error responses to be returned by the get method #
+        '400':
+          description: >-
+            - Application did not provide requiredhttpS header fields -
+            RepNumber required in httpS header for user role provided - Invalid
+            Expansion - Invalid date value - Invalid boolean value 'xxx' - No
+            receipts  were found for the passed input filters
+        '401':
+          description: |-
+            - Authentication Required (invalid application user name or
+            password).
+            - Application does not have authorization to access the requested
+            outputExpansions.
+        '404':
+          description: >-
+            - customerNumber not found 
+
+            - receiptID not found 
+
+            - No applied transactions found for the passed customerNumber and
+            receiptID
+        '500':
+          description: >-
+            - The calling system can retry the calling the Receipts API for
+            server errors.  The  recommendation is to retry every 15 minutes for
+            up to 8 hours before timing out.
+    
+    # Define API's post method here #
+    post:
+    
+    # Define here the type of security being used, e.g. HTTP basic authentication, OAuth2, API key etc. For most of our APIs we use HTTP basic authentication
+      security:
+        - basicAuth: []
+      
+      # Brief description of this API method
+      summary: Post Reciept Request
+      tags:
+        - Endpoints   #This value should always be ‘Endpoints’ for every defined method
+      
+      # Enter the operation id, e.g. getReceipts, postReceipts etc.
+      operationId: postReceipts
+      
+      # Enter both internal and external  complete endpoints for the API #
+      description: |-
+        | Environment    | Endpoint  | Type |
+        | ------- | ------------------------| ------ |
+        | DEV     | https://tmnh7o.manheim.com/receipts2 | Internal |
+        | DEV     | https://tmnh7opub.oracleoutsourcing.com/receipts2 | External |
+        | SILO5   | https://smnh5o.manheim.com/receipts2 | Internal |
+        | SILO5   | https://smnh5opub.oracleoutsourcing.com/receipts2 | External |
+        | PREPROD | https://smnh2o.manheim.com/receipts2 | Internal |
+        | PREPROD | https://smnh2opub.oracleoutsourcing.com/receipts2 | External |
+        | PROD    | https://ebizservices.manheim.com/receipts2 | Internal |
+        | PROD    | https://ebizservicespub.oracleoutsourcing.com/receipts2 | External |  
+      
+      # Define POST Method Request body data elements here #
+      requestBody:
+        description: This is POST methods request payload body
+        required: true
+        content:
+          application/json:  #This represents that API accepts request payload in json format 
+            schema:
+            
+              # API post method accepts an object containing the below data elements #
+              type: object
+              properties:
+                customerNumber:
+                  type: string
+                  description: >-
+                    Will be used to validate this attribute value with Oracle
+                    EBS customer number.  Valid values are:
+
+                      - Auction Access 5 million
+                      - 4.9 million (Commercial)
+                      - 7 million (Retail/Employee) 
+                      - 12 million (Floorplan Agency)
+                      - 13 Million (Consignor Netting)
+                      - Mega Dealer
+                      - RMS Customer Number
+                auctionCode:
+                  type: string
+                  description: >-
+                    This is primary auction location code that must be passed for the following payment types:
+                      
+                      - Cash
+                      - Cashier’s Check
+                      - Check
+                      - Money Order
+                      
+                    This attribute auction location value is used to batch
+                    receipts, derive batch name, and to derive depository bank
+                    account for that auction location,  if remote auction code
+                    is not provided. For held checks, always primary auction
+                    code is used for batching receipts.
+                remoteAuctionCode:
+                  type: string
+                  description: >-
+                    This is remote auction location code and is used to create
+                    receipts only for satellite/remote/mobile location payments.
+                    This is a non-required parameter and needs to be passed only
+                    for the following payment types:
+                     
+                      - Cash
+                      - Cashier’s Check
+                      - Check (Not for Held check)
+                      - Money Order
+                      
+                    If a valid value is passed in this data attribute for one of
+                    the above payment types, then that value will be used to
+                    derive batch name, create/add-to the receipt batch, and to
+                    derive depository bank account, instead of primary location.
+                    If no value is passed in this data attribute then API will
+                    use primary auction code for deriving depository bank
+                    account and creating receipt batch. This value will be
+                    ignored for other payment types.
+                checkNumber:
+                  type: string
+                  description: >-
+                    This attribute value must be passed for the following type
+                    of payment methods:
+                      
+                      - Check
+                      - Money order
+                      - Cashier’s check
+                      - Wire Transfer
+                      - Incoming ACH
+                      - Credit Card
+                      - Unmatched Outside Floorplan
+                        
+                    For check payment this is the check number, for cashier’s
+                    check and money orders it is their serial number
+                    respectively
+                  maxLength: 30
+                holdPayment:
+                  type: boolean
+                  description: >-
+                    Required for ACH and CHECK. If the calling application does
+                    not pass any value then the default value will be considered
+                    as false.
+                  enum:
+                    - true
+                    - false
+                currency:
+                  type: string
+                  enum:
+                    - USD
+                    - CAD
+                receiptAmount:
+                  type: number
+                  description: >-
+                    This is the amount for which receipt will be created or
+                    flooring will be initiated. Calling application must pass
+                    total receipt amount in this data element. Passed
+                    receiptAmount value should be equal to the sum of all
+                    application amount (passed in invoiceDetails array) + sum of
+                    all cash handling fee (in invoiceDetails  array) +
+                    onaccountAmount (added in V2.1). If the amounts are not same
+                    then the entire receipt call will be rejected.
+                onaccountAmount:
+                  type: number
+                  description: >-
+                    Calling application must explicitly pass the amount that
+                    needs to be placed on-Account in Oracle for a given receipt.
+                    This should be null or 0 for floorplan payment.
+                floatContract:
+                  type: boolean
+                  description: >-
+                    Calling application will pass this value to POST Receipts
+                    API, if the flooring request is selected as float contract
+                    in the calling application. Receipt API will pass this value
+                    to floorplan package- man_ar_flrpln_wf_pkg.launch_wf, at the
+                    time of initiating the floorplan workflow. This data element
+                    is applicable only for floorplan payment.
+                  enum:
+                    - true
+                    - false
+                noOfHundreds:
+                  type: integer
+                  description: >-
+                    Number of $100 bills given for cash payment. Stored in the
+                    custom table. Required for CASH payment. This value will
+                    always be a whole number.
+                suspicious:
+                  type: boolean
+                  description: >-
+                    This attribute value must be passed for the following type
+                    of payment methods:
+
+                    - CASH - MONEY_ORDER - CASHIERS_CHECK
+                  enum:
+                    - true
+                    - false
+                suspiciousReason:
+                  type: string
+                  description: >-
+                    This attribute value is required only when suspicious
+                    attribute value is true
+                suspiciousDescription:
+                  type: string
+                  description: This attribute value contains suspicious description
+                Id:
+                  type: string
+                  description: >-
+                    Oracle EBS identifier of the payment method. This identifies
+                    the type of receipt method to be used for creating receipts
+                    or initiate flooring requests. This value can be obtained by
+                    calling Payment Methods or Invoice API.
+                
+                # Within the main object, the post method accepts another object called payer #
+                payer:
+                  type: object
+                  description: >-
+                    Contains payer information for cash payment type. This
+                    Object’s attribute data is required only for CASH payments
+                    AND for Cash equivalent payments when customer is a retail
+                    customer}
+                  
+                  # Below are the data elements for the payer object # 
+                  properties:
+                    payerID:
+                      type: string
+                      description: >-
+                        Registered or unregistered Payer identifier. Should be
+                        passed when an existing payer is selected.
+                    repNumber:
+                      type: string
+                      description: Auction Access 100M number
+                    suffix:
+                      type: string
+                      description: Payer name suffix
+                    firstName:
+                      type: string
+                      description: First name of the payer
+                    middleName:
+                      type: string
+                      description: Middle name of the payer
+                    lastName:
+                      type: string
+                      description: Last name of the payer
+                    tin:
+                      type: string
+                      description: Tax identification number of the payer
+                    dateOfBirth:
+                      format: date
+                      type: string
+                      description: Date of birth of payer
+                    streetAddress:
+                      type: string
+                      description: Street address of payer
+                    city:
+                      type: string
+                      description: City of payer
+                    state:
+                      type: string
+                      description: State/Province of payer
+                    zip:
+                      type: string
+                      description: Postal code of payer
+                    country:
+                      type: string
+                      description: Country of payer
+                    occupation:
+                      type: string
+                      description: Occupation of payer
+                    idNumber:
+                      type: string
+                      description: Non-US identification number of payer
+                    idType:
+                      type: string
+                      description: Non-US identification type of payer
+                    idExpiration:
+                      type: string
+                      format: date
+                      description: Identification expiry date of payer
+                    idIssuedCountry:
+                      type: string
+                      description: Identification issuing country of payer
+                    idIssuedState:
+                      type: string
+                      description: Identification issue date of payer
+                    idDescription:
+                      type: string
+                      description: Identification description of payer
+                    w9Received:
+                      type: boolean
+                      enum:
+                        - true
+                        - false
+                      description: If payer has received W9 or not
+                    notApplicable:
+                      type: boolean
+                      enum:
+                        - true
+                        - false
+                      description: Identifies if SSN is applicable or not
+                
+                # Within the main object, the post method accepts an array called invoiceDetails #
+                invoiceDetails:
+                  type: array
+                  description: >-
+                    This array contains invoice identifiers to be applied to the
+                    receipt. This array is not mandatory. If no application
+                    invoice(s) is passed in this array then receiptAmount should
+                    be equal to onaccountAmount and entire receipt amount will
+                    be placed on-account
+                  
+                  # Within invoiceDetails array, payload accepts an object containing application data #
+                  items:
+                    type: object
+                    
+                    # Below are the data elements for within the object# 
+                    properties:
+                      invoiceID:
+                        type: integer
+                        description: >-
+                          This attribute contains the identifier of an invoice
+                          or sales order to which receipt will be applied to or
+                          flooring request will be initiated for. If sale has
+                          been finalized, i.e. sales order in Oracle has been
+                          converted to an invoice then this attribute will
+                          contain Oracle EBS invoice id else sales_order id.
+
+                          ** Required when receipt needs to be applied to an
+                          invoice, otherwise API will create on-account receipt
+                          when value is populated in onaccountAmount  field.**
+                      invoiceSource:
+                        type: string
+                        
+                        # API accepts only INVOICE and ORDER invoice sources
+                        enum:
+                          - INVOICE
+                          - ORDER
+                        description: >-
+                          Calling application must pass one of the following
+                          values:
+                            
+                            - 'INVOICE': if the receipt is applied to an invoice
+                            - 'ORDER': if the receipt is applied to a  sales order
+                          For invoice source of ORDER, Receipts api will
+                          validate that the sales order header status is not
+                          ENTERED or CANCELLED. If the header status for any of
+                          the passed sales orders is ENTERED or CANCELLED then
+                          the entire receipt call will be rejected. 
+                          
+                          **This field is required when invoiceId is passed.**
+                      applicationAmount:
+                        type: number
+                        description: >-
+                          Calling application must explicitly pass
+                          applicationAmount value that needs to be applied to
+                          the each Oracle transaction (invoice/sales order)
+                          passed in this array.  This is the transaction amount
+                          does not include cash handling fees amount.
+
+                          Receipt API will validate that the receiptAmount =
+                          onaccountAmount + sum of all cash handling fee + sum
+                          of all application amounts.
+
+                          **This field is required when invoiceId is passed.**
+                      cashHandlingFee:
+                        type: number
+                        deprecated: true # Indicates that this field is no more used #
+                        description: >-
+                          This is cash handling fees to be applied to the
+                          current transaction. It will be used to create cash
+                          handling fees line on sales order or an adjustment on
+                          invoice. This should be passed only for CASH payment
+                          type and should be null or 0 for any other payment
+                          types. This data element (fee) is moved from
+                          paymentMethod object to invoiceDetails array.
+              
+              # In the POST method request payload, below are the required data elements #
+              required:
+                - customerNumber
+                - Id
+                - currency
+                - receiptAmount
+      
+      # Define POST Method Responses Here #   
+      responses:
+      # Define success response to be returned by the get method #
+        '201':
+          description: OK
+          content:
+            application/json: #This represents that API response payload is in json
+              schema:
+                type: object
+                properties:
+                  receiptStatus:
+                    type: string
+                    maxLength: 30
+                    description: >-
+                      Return the status of the newly created receipt.  Valid
+                      values are-
+
+                      - PENDING- Applicable for pending ACH, Held Check,
+                      un-approved & on-hold floorplan requests
+
+                      - APPROVED- This receipt has been approved for automatic
+                      receipt creation. This status is only valid for automatic
+                      receipts
+
+                      - CONFIRMED- For manually entered receipts, this status
+                      indicates the receipt belongs to a receipt class that
+                      requires remittance
+
+                      - REMITTED- It indicates that the receipt has been
+                      remitted to the bank
+
+                      - CLEARED- It indicates that the payment of the receipt
+                      was transferred to your bank account and the bank
+                      statement has been reconciled within Receivables
+
+                      - REVERSED- It indicates that the receipt has been
+                      reversed. You can reverse a receipt when your customer
+                      stops payment on a receipt, if a receipt comes from an
+                      account with non-sufficient funds or if you want to
+                      re-enter and reapply it in Receivables
+                  pendingReceiptType:
+                    type: string
+                    maxLength: 60
+                    description: >-
+                      API returns value for this field only for pending
+                      transactions e.g. held check, pending ACH, pending/on-hold
+                      floorplan
+                  recieptID:
+                    type: integer
+                    description: Oracle EBS identifier for the receipt created.
+                  receiptNumber:
+                    type: string
+                    maxLength: 30
+                    description: >-
+                      Oracle EBS receipt number for the receipt created. For
+                      pending ACH and floorplan requests,it will be null.
+                  serialNumber:
+                    type: string
+                    maxLength: 30
+                  success:
+                    type: boolean
+                    description: >-
+                      Indicates if the creation of receipt, pending ACH
+                      update,or floorplanning was successful or not
+                  errorMessage:
+                    type: string
+                    maxLength: 100
+                    description: >-
+                      Returns back null for success or the error message for
+                      failure
+        
+        # Define error responses to be returned by the get method #
+        '400':
+          description: >-
+            - Application did not provide requiredhttpS header fields -
+            Application (CSA/RMS) user is not authorized to create 'xxx' receipt
+            type
+
+            - RepNumber required inhttpS header for user role provided
+
+            - Invalid date value
+
+            - String value 'xxx' is not a valid value for paymentMethod:id
+
+            - String value 'xxx' is not a valid enumeration value for currency
+
+            - Invalid boolean value ‘xxx' for hold payment
+
+            - string value 'xxx' is not a valid enumeration value for invoice
+            source
+
+            - Check number value is not passed for 'xxx' payment type
+
+            - Suspicious flag value is not passed for 'xxx' payment type
+
+            - Suspicious reason value is not passed when receipt was flagged as
+            suspicious
+
+            - Number of hundreds value 'nnn' is not valid
+
+            - Passed total receipt amount does not match with the sum of
+            application, cash handling fee, and on-account amounts.
+
+            - Cash handling fee line/adjustment already exists for
+            transaction(s) nnnn (, nnnn…)
+
+            - Passed application amount for transaction(s) nnnn (, nnnn…) is
+            more than the transaction open amount 
+
+            - Passed Sales Order <salesorderid> is in ENTERED or CANCELLED
+            status
+
+            - Invalid combination of primary and remote locations was passed 
+
+            - Passed location <locationcode> is inactive or end dated in Oracle
+
+            - Depository bank account is not defined for the passed remote
+            location
+        '401':
+          description: Authorization Required (invalid application user name)
+        '404':
+          description: >-
+            - customerNumber not found
+
+            - Bank account is either inactive or invalid for the passed bank
+            account id
+        '500':
+          description: >-
+            - The calling system can retry the calling the Payments API for
+            server errors.  The  recommendation is to retry every 15 minutes for
+            up to 8 hours before timing out.
+
+# Define common data elements in the below section that are referenced in this document as $ref data elements #
+components:
+  schemas:
+    # Define receipts array #
+    receipts:
+      type: array
+      description: This array contains receipt header level information
+      
+      # receipts array contains object of the following data elements #
+      items:
+        type: object
+        properties:
+          customerNumber:
+            type: string
+            maxLength: 60
+            description: |-
+              API returns the same customer number value as passed in the
+              input parameter. This customer could be different from the receipt
+              customer, when receipt id is passed. If a value is populated in
+              payerCustomerNumber field then this field value (customerNumber)
+              represents the subsidiary (child) customer whose invoices were
+              paid by payerCustomerNumber customer (parent).
+          payerCustomerNumber:
+            type: string
+            maxLength: 60
+            description: >-
+              If the passed input customerNumber is same as the receipt customer
+              number then the API response does not include this data
+              attribute/tag, since its value will be blank (Null). 
+
+              If they are different then API returns receipt customer number in
+              this field. In such case, this field value represents the parent
+              customer who paid the invoice(s) of the subsidiary/child customer
+              (customerNumber).
+
+              This logic is applicable only for receipt transactions when
+              receiptID input value is passed and is not applicable for
+              non-receipt transactions, e.g. pending floorplan, pending ACH etc.
+          payerCustomerName:
+            type: string
+            maxLength: 360
+            description: >-
+              API returns the customer name of the payerCustomerNumber, whenever
+              applicable.
+          receiptDate:
+            type: string
+            maxLength: 30
+            description: 'Date receipt was created in Oracle in UTC - YYYY-MM-DDTHH:MM:S-UTC'
+          receiptDateString:
+            type: string
+            maxLength: 30
+            description: Payment date in MM/DD/YYYY format
+          receiptID:
+            type: string
+            description: Oracle EBS payment identifier of a receipt
+            maxLength: 25
+          receiptBatchName:
+            type: string
+            maxLength: 20
+            description: >-
+              This is Oracle EBS receipt batch name, applicable for the
+              following type of receipts-Cash, Money Order, Cashier's Check,
+              Check
+          receiptNumber:
+            type: string
+            maxLength: 30
+            description: This is Oracle EBS receipt number
+          serialNumber:
+            type: string
+            maxLength: 30
+            description: 'This is check, money order, cashiers check number'
+          receiptDescription:
+            type: string
+            maxLength: 240
+            description: >-
+              API returns floor plan agency name for floorplan payment, bank
+              name||account# for ACH, customer name||account# for Consignor
+              netting
+          pendingDescription:
+            type: string
+            maxLength: 60
+            description: 'Hold reason name, e.g. Title Absent'
+          receiptAmount:
+            type: number
+            description: >-
+              This is the Oracle EBS total receipt amount.
+
+              If the passed input customerNumber is same as the receipt customer
+              then API returns total receipt amount. If they are different then
+              API loops through each transaction (invoices, sales orders, and
+              credit memos) applied to the receipt and derives application
+              amount, where the applied transactions' sold-to customer number is
+              same as the input customerNumber. API returns the sum of all
+              application amounts for the derived transactions.
+          overPaymentAmount:
+            type: number
+            description: >-
+              Remaining On-Account and Un-Applied amount on the receipt. If the
+              passed input customerNumber is different from the receipt customer
+              then the API response does not include this data attribute/tag,
+              since its value will be blank (Null). If they are same then API
+              returns the sum of un-applied and true on-account amounts 
+          receiptSource:
+            type: string
+            maxLength: 25
+            description: >-
+              This is payment source- RECEIPT or PENDING based on the payment
+              status:
+                
+                - PENDING: Held Check, Ach Pending, Initiated/On-Hold Floorplan
+                
+                - RECEIPT: Cash, Check, Ach Immediate, Money Order, Cashier's Check, Consignor Netting, Credit Card, eCheck, Wire Transfer, Incoming ACH, RMS I/C
+          currency:
+            type: string
+            description: Currency code. Valid values are USD and CAD
+            maxLength: 15
+            enum:
+              - USD
+              - CAD
+          receiptMethodType:
+            type: string
+            description: This is Payment Method Type
+            maxLength: 30
+          receiptStatus:
+            type: string
+            description: Receipt Status
+            maxLength: 30
+            enum:
+              - PENDING
+              - APPROVED
+              - CONFIRMED
+              - REMITTED
+              - CLEARED
+              - REVERSED
+          receiptState:
+            type: string
+            description: Receipt Stats
+            maxLength: 30
+          pendingReceiptType:
+            type: string
+            description: >-
+              API returns value in this field  only for pending transactions,
+              e.g. held check, pending ACH, pending/on-hold floorplan.
+            maxLength: 60
+          reversalReason:
+            type: string
+            description: This is the reason for the reversed receipt.
+            maxLength: 60
+          receiptMethodTypeDetails:
+            type: string
+            description: Populated for floorplan and ACH buyer payments
+            maxLength: 60
+          numberOfHundredDollars:
+            type: integer
+            description: Applicable only for cash receipts
+          employeeUsername:
+            type: string
+            description: >-
+              Employee username, applicable only for cash or cash equivalent
+              receipts
+            maxLength: 240
+          receiptRefundEligible:
+            type: boolean
+            description: >-
+              true value is returned in this data attribute if a receipt passes
+              the validations for refund eligibility. This data field is
+              applicable only when Receipts API is called with
+              includeUnappliedReceipts input filter, i.e. for on-account
+              receipts (includes both on-account and unapplied receipts). For
+              all other filters false value is returned.
+          receiptDetails:
+            $ref: '#/components/schemas/receiptDetails'
+          applications:
+            $ref: '#/components/schemas/applications'
+    
+    # receipts array references receiptDetails object #
+    receiptDetails:
+      type: object
+      description: >-
+        This object contains customer, auction location, payer, and receipt 
+        application information.
+      
+      # receiptDetails object references customer, auction, and payer objects #
+      properties:
+        customer:
+          $ref: '#/components/schemas/customer'
+        auction:
+          $ref: '#/components/schemas/auction'
+        payer:
+          $ref: '#/components/schemas/payer'
+    
+    # Define customer data object #
+    customer:
+      type: object
+      properties:
+        customerName:
+          type: string
+          description: >-
+            API returns the customer name of the passed customerNumber. To get
+            this value and other details in this array in the response payload,
+            “RECEIPT DETAILS” output expansion must be passed.
+          maxLength: 360
+        address1:
+          type: string
+          description: Buyer address line 1
+          maxLength: 30
+        address2:
+          type: string
+          description: Buyer address line 2
+          maxLength: 30
+        city:
+          type: string
+          description: Buyer address city name
+          maxLength: 30
+        state:
+          type: string
+          description: Buyer address state name
+          maxLength: 30
+        postal:
+          type: string
+          description: Buyer address postal code
+          maxLength: 30
+        country:
+          type: string
+          description: Buyer address country code
+          maxLength: 30
+    
+    # Define auction data object #
+    auction:
+      type: object
+      description: >-
+        This object contains auction location details where payment was
+        received. Applicable for CASH, CASHIERS CHECK, and MONEY ORDER payment
+        types
+      properties:
+        auctionLocation:
+          type: string
+          description: >-
+            This is primary auction location name where payment was received
+            from the buyer
+          maxLength: 240
+        auctionCode:
+          type: string
+          description: >-
+            This is primary auction location code where payment was received
+            from the buyer
+          maxLength: 25
+        remoteAuctionCode:
+          type: string
+          description: >-
+            This is remote auction location code and is retuned only when remote
+            location code was provided by the calling application for cash,
+            check, cashiers check, and money order payments
+          maxLength: 25
+        address1:
+          type: string
+          description: Primary Auction Location address line 1 for the payment location
+          maxLength: 30
+        address2:
+          type: string
+          description: Primary Auction Location address line 2 for the payment location
+          maxLength: 30
+        city:
+          type: string
+          description: Primary Auction Location city name for the payment location
+          maxLength: 30
+        state:
+          type: string
+          description: Primary Auction Location state name for the payment location
+          maxLength: 30
+        postal:
+          type: string
+          description: Primary Auction Location postal code for the payment location
+          maxLength: 30
+        country:
+          type: string
+          description: Primary Auction Location country code for the payment location
+          maxLength: 30
+    
+    # Define payer data object #
+    payer:
+      type: object
+      description: >-
+        This object contains payer details for Cash payments Or for Cash
+        equivalent payments when customer is a retail customer.
+      properties:
+        name:
+          type: string
+          description: Payer first name & last name
+          maxLength: 300
+        repNumber:
+          type: string
+          description: Payer rep number
+          maxLength: 25
+        idType:
+          type: string
+          description: Payer id description
+          maxLength: 150
+        idDescription:
+          type: string
+          description: Payer id description
+          maxLength: 150
+        idNumber:
+          type: string
+          description: Payer identification number
+          maxLength: 150
+        issuedByCountry:
+          type: string
+          description: Payer identification issuing country
+          maxLength: 150
+        issuedByState:
+          type: string
+          description: Payer id issuing state
+          maxLength: 360
+        idExpiration:
+          type: string
+          description: Payer id expiration date
+          maxLength: 15
+        address1:
+          type: string
+          description: Payer address line 1
+          maxLength: 240
+        city:
+          type: string
+          description: Payer address city name
+          maxLength: 60
+        state:
+          type: string
+          description: Payer address state name
+          maxLength: 60
+        postal:
+          type: string
+          description: Payer address postal code
+          maxLength: 60
+        country:
+          type: string
+          description: Payer address country code
+          maxLength: 60
+    
+    # Define applications array with below data elements #
+    applications:
+      type: array
+      description: >-
+        This array contains application information of the receipt. This array
+        contains all type of applications, including invoice, sales order
+        on-account, credit memo, writeoff, refund, or on-account, except when
+        the input customer number is different from the receipt customer number
+        and receiptID is passed. In such case, API does not return following
+        application types- 
+
+          - On Account- True on-account without sales order application
+          - Write Off
+          - Refund
+
+        If the passed input customerNumber is same as the receipt customer
+        number then the API returns all applied transactions (functionality as
+        of version 2.3).  If they are different then the API loops through each
+        applied transaction (invoice, sales order on-account, and credit memo)
+        and returns only those applied transactions that have sold-to customer
+        number same as the input customerNumber. If none of the applied
+        transactions have sold-to customer number same as the passed input
+        customerNumber then API returns error message with 404 error code. This
+        logic is applicable only when receiptID is passed.
+      
+      # applications array contains an object with the following data elements#
+      items:
+        type: object
+        properties:
+          consignmentID:
+            type: integer
+            description: Consignment identifier
+          year:
+            type: string
+            description: Vehicle make year
+            maxLength: 240
+          make:
+            type: string
+            description: Vehicle make
+            maxLength: 240
+          model:
+            type: string
+            description: Vehicle model
+            maxLength: 240
+          trim:
+            type: string
+            description: Vehicle trim style
+            maxLength: 240
+          vin:
+            type: string
+            description: Vehicle Identification Number
+            maxLength: 240
+          invoiceID:
+            type: integer
+            description: >-
+              Invoice application- Invoice id of the applied invoice. It can
+              also be  credit memo id for consignor netting. Sales Order
+              application- sales order id of the applied sales order.
+          invoiceNumber:
+            type: string
+            description: >-
+              Invoice application- Invoice number of the applied invoice. It can
+              also be credit memo number for consignor netting. Sales Order
+              application- sales order number of the applied sales order. 
+            maxLength: 50
+          invoiceSource:
+            type: string
+            description: |-
+              Values returned are-
+                  -  'INVOICE'- if the receipt is applied to an invoice or any application other than ORDER
+                  -  'ORDER'- if the receipt is applied to a  sales order (on-account with SO in DFF)
+            maxLength: 30
+          invoiceType:
+            type: string
+            description: >-
+              This data attribute is populated only for invoice source of
+              INVOICE and ORDER (application type = ‘APPLIED'). For others it
+              will be blank.
+
+                Invoice type from-
+                  -  sales order transaction type for receipt applied to sales order
+                  -  invoice transaction type for receipt applied to sales order
+            maxLength: 30
+          appliedInvoiceNumber:
+            type: string
+            description: >-
+              Return invoice/credit memo number or sales order number based on
+              the invoiceSource value.
+          appliedAmount:
+            type: number
+            description: >-
+              This amount needs to be calculated based on the type of payment.
+              This is the receipt amount applied to this invoice / credit memo/
+              sales order /refund/writeoff activity
+          remainingBalance:
+            type: number
+            description: >-
+              This amount needs to be calculated based on the type of payment.
+              This is the remaining balance on the applied invoice / sales
+              order.
+          partialPayment:
+            type: boolean
+            description: >-
+              If invoice or sales order balance is not zero then populate true
+              else false
+          applicationType:
+            type: string
+            description: Identifies the type of application
+            maxLength: 30
+          applicationDate:
+            type: string
+            description: 'Application date in UTC - YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          activity:
+            type: string
+            description: >-
+              This is the activity name defined in Oracle for application type
+              of writeoff and refund. 
+
+              This data attribute is populated only for Writeoff and Refund
+              application types. It will be blank for other application types.
+            maxLength: 50
+          transactionLocationCode:
+            type: string
+            description: >-
+              This is the auction location code associated with the applied
+              transaction.
+            maxLength: 25
+          transactionLocationName:
+            type: string
+            description: >-
+              This is the auction location name associated with the applied
+              transaction.
+            maxLength: 240
+          saleDate:
+            type: string
+            description: 'Sale date in UTC format - YYYY-MM-DDTHH:MM:S-UTC'
+            maxLength: 30
+          universalKey:
+            type: string
+            description: >-
+              Concatenated value of (Sale Year + Sale Num + Lane Num + Run Num),
+              separated by - character, e.g.: 2017-50-1-82
+            maxLength: 30
+          soldToCustomerNumber:
+            type: string
+            maxLength: 60
+            description: >-
+              API returns the Sold-To customer account number of the transaction
+              (Sales Order / Invoice) that is applied to the receipt. API does
+              not return this field value for other receipt application lines,
+              like true On-Account (On-Account application line without Sales
+              Order value populated in DFF attribute), Refund, and Write-Off.
+          soldToCustomerName:
+            type: string
+            maxLength: 360
+            description: >-
+              API returns the Sold-To customer account name of the transaction
+              (Sales Order / Invoice) that is applied to the receipt. API does
+              not return this field value for other receipt application lines,
+              like true On-Account (On-Account application line without Sales
+              Order value populated in DFF attribute), Refund, and Write-Off.
+          facilitatingLocationCode:
+            type: string
+            maxLength: 25
+            description: >-
+              API returns the facilitating location code from the applied transaction (Sales Order / Invoice) offeringline. This is the derived value based on the facilitating location name stored in the offering line DFF attribute5 of the transaction. The value in this data attribute will be blank (or tag itself won't be returned) if the location name value of transaction offering line does not match with a valid auction location name (in sales person table) or the value stored in the transaction line DFF attribute is blank (NULL) or the transaction does not have an offering line or the transaction has  more than one offering lines. 
+              
+              
+              API does not return this field for other receipt application lines, like true On-Account (On-Account application line with Sales Order), Refund, and Write-Off.
+          facilitatingLocationName:
+            type: string
+            maxLength: 240
+            description: >-
+              API returns the facilitating location name from the applied transaction (Sales Order / Invoice) offering line. The value in this data attribute (or tag itself won't be returned) if the value stored in the transaction line DFF attribute is blank (NULL) or the transaction does not have an offering line or the transaction has  more than one offering lines.
+              
+              
+              API does not return this field for other receipt application lines, like true On-Account (On-Account application line with Sales Order), Refund, and Write-Off.              
+    # Define truncation object with the following data elements#
+    truncation:
+      type: object
+      properties:
+        truncated:
+          type: boolean
+        itemCount:
+          type: integer
+
+  # This is the type of security being used, e.g. HTTP basic authentication, OAuth2, API key etc. For most of our APIs we use HTTP basic authentication #          
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
